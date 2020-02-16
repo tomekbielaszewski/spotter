@@ -27,6 +27,11 @@ public class Screen {
         return new Screen(this.workingArea);
     }
 
+    public boolean isVisible(Icon icon) {
+        return locate(icon)
+                .isPresent();
+    }
+
     public Screen drag(Icon from, Icon to) {
         return drag(from, to,
                 s -> log.error("Could not find icon to drag: " + from.getFilename()),
