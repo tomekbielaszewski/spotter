@@ -46,6 +46,15 @@ public class Screen {
         return this;
     }
 
+    public Screen drag(Icon from, Point to, Consumer<Screen> onNotFoundFrom) {
+        locate(from)
+                .ifPresentOrElse(
+                        fromP -> drag(fromP, to),
+                        () -> onNotFoundFrom.accept(this)
+                );
+        return this;
+    }
+
     public Screen drag(Point from, Point to) {
         from = addOffset(from);
         to = addOffset(to);
@@ -85,9 +94,10 @@ public class Screen {
         return this;
     }
 
-    public Screen waitAndDrag(Icon waitFor, Icon dragTo, long timeout) {
+    public Screen waitAndDrag(Icon waitFor, Point to, long timeout) {
         Screen screen = waitFor(waitFor, timeout);
-        return screen.drag(waitFor, dragTo);
+        return screen.drag(waitFor, to,
+                s -> log.error("Could not find icon to drag: " + waitFor.getFilename()));
     }
 
     public Screen waitAndClick(Icon icon, long timeout) {
