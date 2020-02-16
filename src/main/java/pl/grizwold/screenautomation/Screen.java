@@ -85,6 +85,11 @@ public class Screen {
         return this;
     }
 
+    public Screen waitAndDrag(Icon waitFor, Icon dragTo, long timeout) {
+        Screen screen = waitFor(waitFor, timeout);
+        return screen.drag(waitFor, dragTo);
+    }
+
     public Screen waitAndClick(Icon icon, long timeout) {
         Screen screen = waitFor(icon, timeout);
         return screen.click(icon);
