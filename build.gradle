@@ -13,6 +13,13 @@ plugins {
 }
 apply plugin: 'com.github.johnrengelman.shadow'
 
+allprojects {
+    tasks.withType(JavaCompile) {
+        sourceCompatibility = '11'
+        targetCompatibility = '11'
+    }
+}
+
 group = 'pl.grizwold'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
