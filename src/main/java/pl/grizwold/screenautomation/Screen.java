@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;
 import java.awt.event.InputEvent;
+import java.awt.image.BufferedImage;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -23,6 +25,43 @@ public class Screen {
         this.imageLocator = new ImageLocator(robot.createScreenCapture(workingArea));
     }
 
+    public Optional<Point> locate(Icon icon) {
+        return imageLocator.locate(icon)
+                .stream()
+                .findFirst();
+    }
+
+    public Optional<Point> locateMiddle(Icon icon) {
+        BufferedImage iconImage = icon.getImage();
+        return locate(icon)
+                .map(p -> {
+                    Point copy = p.getLocation();
+                    copy.translate(iconImage.getWidth() / 2, iconImage.getHeight() / 2);
+                    return copy;
+                });
+    }
+
+    public Optional<Rectangle> locateArea(Icon upperLeft, Icon lowerRight) {
+        Optional<Point> upperLeftPoint = locate(upperLeft);
+        Optional<Point> lowerRightPoint = locate(lowerRight);
+
+        if (upperLeftPoint.isPresent() && lowerRightPoint.isPresent()) {
+            Point p1 = upperLeftPoint.get();
+            Point p2 = lowerRightPoint.get();
+
+            BufferedImage lowerRightImage = lowerRight.getImage();
+            p2.translate(lowerRightImage.getWidth(), lowerRightImage.getHeight());
+
+            return Optional.of(new Rectangle(p1, new Dimension(p2.x - p1.x, p2.y - p1.y)));
+        }
+
+        return Optional.empty();
+    }
+
+    public List<Point> locateAll(Icon icon) {
+        return imageLocator.locate(icon);
+    }
+
     public Screen refresh() {
         return new Screen(this.workingArea);
     }
@@ -39,9 +78,9 @@ public class Screen {
     }
 
     public Screen drag(Icon from, Icon to, Consumer<Screen> onNotFoundFrom, Consumer<Screen> onNotFoundTo) {
-        locate(from)
+        locateMiddle(from)
                 .ifPresentOrElse(
-                        fromP -> locate(to)
+                        fromP -> locateMiddle(to)
                                 .ifPresentOrElse(
                                         toP -> drag(fromP, toP),
                                         () -> onNotFoundTo.accept(this)
@@ -52,7 +91,7 @@ public class Screen {
     }
 
     public Screen drag(Icon from, Point to, Consumer<Screen> onNotFoundFrom) {
-        locate(from)
+        locateMiddle(from)
                 .ifPresentOrElse(
                         fromP -> drag(fromP, to),
                         () -> onNotFoundFrom.accept(this)
@@ -79,7 +118,7 @@ public class Screen {
     }
 
     public Screen doubleClick(Icon icon, Consumer<Screen> onNotFound) {
-        locate(icon)
+        locateMiddle(icon)
                 .ifPresentOrElse(
                         this::doubleClick,
                         () -> onNotFound.accept(this)
@@ -120,7 +159,7 @@ public class Screen {
     }
 
     public Screen click(Icon icon, Consumer<Screen> onNotFound) {
-        locate(icon)
+        locateMiddle(icon)
                 .ifPresentOrElse(
                         this::click,
                         () -> onNotFound.accept(this)
@@ -149,8 +188,7 @@ public class Screen {
         long start = System.currentTimeMillis();
         do {
             Screen refreshed = refresh();
-            Optional<Point> location = refreshed.locate(icon);
-            if (location.isPresent())
+            if (isVisible(icon))
                 return refreshed;
             halt();
         } while ((System.currentTimeMillis() - start) < timeout);
@@ -166,12 +204,6 @@ public class Screen {
     public Screen halt(long delay) {
         Thread.sleep(delay);
         return this;
-    }
-
-    private Optional<Point> locate(Icon icon) {
-        return imageLocator.locate(icon)
-                .stream()
-                .findFirst();
     }
 
     private Point addOffset(Point p) {
