@@ -60,11 +60,6 @@ public class ImageLocator {
 
         log.debug("Locating icon \"{}\" took: \t\t{} ms", sample.getFilename(), (System.currentTimeMillis() - start));
 
-        return possibleFirstPixels.stream()
-                .map(p -> {
-                    Point copy = p.getLocation();
-                    copy.translate(icon.getWidth() / 2, icon.getHeight() / 2);
-                    return copy;
-                }).collect(Collectors.toList());
+        return possibleFirstPixels;
     }
 }
