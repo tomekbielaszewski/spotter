@@ -19,7 +19,7 @@ public class Screen {
 
     @SneakyThrows
     public Screen(Rectangle workingArea) {
-        this.offset = workingArea.getLocation();
+        this.offset = new Point(workingArea.getLocation());
         this.workingArea = workingArea;
         this.robot = new Robot();
         this.imageLocator = new ImageLocator(robot.createScreenCapture(workingArea));
@@ -34,11 +34,7 @@ public class Screen {
     public Optional<Point> locateMiddle(Icon icon) {
         BufferedImage iconImage = icon.getImage();
         return locate(icon)
-                .map(p -> {
-                    Point copy = p.getLocation();
-                    copy.translate(iconImage.getWidth() / 2, iconImage.getHeight() / 2);
-                    return copy;
-                });
+                .map(p -> p.translate(iconImage.getWidth() / 2, iconImage.getHeight() / 2));
     }
 
     public Optional<Rectangle> locateArea(Icon upperLeft, Icon lowerRight) {
@@ -46,13 +42,12 @@ public class Screen {
         Optional<Point> lowerRightPoint = locate(lowerRight);
 
         if (upperLeftPoint.isPresent() && lowerRightPoint.isPresent()) {
-            Point p1 = upperLeftPoint.get();
-            Point p2 = lowerRightPoint.get();
-
             BufferedImage lowerRightImage = lowerRight.getImage();
-            p2.translate(lowerRightImage.getWidth(), lowerRightImage.getHeight());
 
-            return Optional.of(new Rectangle(p1, new Dimension(p2.x - p1.x, p2.y - p1.y)));
+            Point p1 = upperLeftPoint.get();
+            Point p2 = lowerRightPoint.get().translate(lowerRightImage.getWidth(), lowerRightImage.getHeight());
+
+            return Optional.of(new Rectangle(p1.toAwt(), p2.minus(p1).toDimension()));
         }
 
         return Optional.empty();
@@ -207,8 +202,6 @@ public class Screen {
     }
 
     private Point addOffset(Point p) {
-        Point copy = p.getLocation();
-        copy.translate(this.offset.x, this.offset.y);
-        return copy;
+        return p.translate(this.offset);
     }
 }

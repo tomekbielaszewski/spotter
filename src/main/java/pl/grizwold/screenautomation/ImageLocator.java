@@ -2,7 +2,6 @@ package pl.grizwold.screenautomation;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,12 +47,7 @@ public class ImageLocator {
                 final int _y = y;
                 possibleFirstPixels = possibleFirstPixels.stream()
                         .filter(fpix -> colourMap.computeIfAbsent(pixel, k -> new ArrayList<>()).stream()
-                                .anyMatch(p -> {
-                                            Point fpixCopy = fpix.getLocation();
-                                            fpixCopy.translate(_x, _y);
-                                            return fpixCopy.equals(p);
-                                        }
-                                ))
+                                .anyMatch(p -> fpix.translate(_x, _y).equals(p)))
                         .collect(Collectors.toList());
             }
         }
