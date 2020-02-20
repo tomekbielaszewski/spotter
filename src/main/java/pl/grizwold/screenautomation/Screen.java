@@ -25,12 +25,30 @@ public class Screen {
         this.imageLocator = new ImageLocator(robot.createScreenCapture(workingArea));
     }
 
+    /**
+     * Locates given image icon on screen. When several icons are found on screen - one of them is returned.
+     * The order may be random. Returned {@link Point} is location of left upper pixel of given icon. Returned {@link Point}
+     * cooridnates are related to {@link Screen}.workingArea of enclosin {@link Screen} object (thus - subrectangle of
+     * physical screen). In order to translate it to location on physical screen - translate it by {@link Screen}.offset
+     * @param icon small image which will be searched on the screen
+     * @return location of upper left pixel of given icon
+     */
     public Optional<Point> locate(Icon icon) {
         return imageLocator.locate(icon)
                 .stream()
                 .findFirst();
     }
 
+    /**
+     * Locates given image icon on screen. When several icons are found on screen - one of them is returned.
+     * The order may be random. Returned {@link Point} is location of center pixel of given icon. Returned {@link Point}
+     * cooridnates are related to {@link Screen}.workingArea of enclosin {@link Screen} object (thus - subrectangle of
+     * physical screen). In order to translate it to location on physical screen - translate it by {@link Screen}.offset
+     * <br/><br/>
+     * This method is similar to: {@link #locate(Icon)}
+     * @param icon small image which will be searched on the screen
+     * @return location of center pixel of given icon
+     */
     public Optional<Point> locateMiddle(Icon icon) {
         BufferedImage iconImage = icon.getImage();
         return locate(icon)
