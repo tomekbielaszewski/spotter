@@ -157,7 +157,7 @@ public class Screen {
     }
 
     public Screen doubleClick(Point point, long delay) {
-        log.info("Double clicking {}:{} with delay {}", point.x, point.y, delay);
+        log.debug("Double clicking {}:{} with delay {}", point.x, point.y, delay);
         this.click(point);
         halt(delay);
         this.click(point);
