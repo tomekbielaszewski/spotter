@@ -51,7 +51,7 @@ public class ImageLocator {
         int firstPixel = icon.getRGB(0, 0);
         List<Point> possibleFirstPixels = colourMap.computeIfAbsent(firstPixel, k -> new ArrayList<>());
 
-        if(possibleFirstPixels.isEmpty()) {
+        if (possibleFirstPixels.isEmpty()) {
             return possibleFirstPixels;
         }
 
@@ -59,20 +59,25 @@ public class ImageLocator {
             saveImageWithFoundPixels(possibleFirstPixels, start, 0);
         }
 
-        for (int x = 1; x < icon.getWidth(); x++) {
+        for (int x = 0; x < icon.getWidth(); x++) {
             for (int y = 0; y < icon.getHeight(); y++) {
+                if (x == 0 && y == 0) continue;
+
                 int pixel = icon.getRGB(x, y);
                 final int _x = x;
                 final int _y = y;
+
                 possibleFirstPixels = possibleFirstPixels.stream()
                         .filter(fpix -> colourMap.computeIfAbsent(pixel, k -> new ArrayList<>()).stream()
                                 .anyMatch(p -> fpix.translate(_x, _y).equals(p)))
                         .collect(Collectors.toList());
-                if(possibleFirstPixels.isEmpty()) {
+
+                if (possibleFirstPixels.isEmpty()) {
                     return possibleFirstPixels;
                 }
+
                 if (debug_saveSteps && debug_saveStepsVerbose) {
-                    saveImageWithFoundPixels(possibleFirstPixels, start, y * icon.getHeight() + x);
+                    saveImageWithFoundPixels(possibleFirstPixels, start, y + x * icon.getWidth());
                 }
             }
         }
