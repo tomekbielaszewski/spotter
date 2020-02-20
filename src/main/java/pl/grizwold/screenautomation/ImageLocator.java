@@ -23,7 +23,7 @@ public class ImageLocator {
     private boolean debug_saveSteps;
     private boolean debug_saveStepsVerbose;
     private String debug_saveStepsDirectory;
-    private int amountOfLastFoundPixels;
+    private int amountOfLastFoundPixels = -1;
 
     public ImageLocator(BufferedImage base) {
         this.base = base;
@@ -52,7 +52,7 @@ public class ImageLocator {
         int firstPixel = icon.getRGB(0, 0);
         List<Point> possibleFirstPixels = colourMap.computeIfAbsent(firstPixel, k -> new ArrayList<>());
 
-        debugImage(this.base, possibleFirstPixels, "0_0", start);
+        debugImage(this.base, sample, possibleFirstPixels, "0_0", start);
 
         if (possibleFirstPixels.isEmpty()) {
             log.debug("Icon {} not found", sample.getFilename());
@@ -72,7 +72,7 @@ public class ImageLocator {
                                 .anyMatch(p -> fpix.translate(_x, _y).equals(p)))
                         .collect(Collectors.toList());
 
-                debugImage(this.base, possibleFirstPixels, x + "_" + y, start);
+                debugImage(this.base, sample, possibleFirstPixels, x + "_" + y, start);
 
                 if (possibleFirstPixels.isEmpty()) {
                     log.debug("Icon {} not found", sample.getFilename());
@@ -86,9 +86,9 @@ public class ImageLocator {
         return possibleFirstPixels;
     }
 
-    private void debugImage(BufferedImage baseImage, List<Point> pixelsToHighlight, String iteration, long timestamp) {
+    private void debugImage(BufferedImage baseImage, Icon sample, List<Point> pixelsToHighlight, String iteration, long timestamp) {
         if (debug_saveSteps && debug_saveStepsVerbose && pixelsToHighlight.size() != amountOfLastFoundPixels) {
-            saveImageWithFoundPixels(pixelsToHighlight, timestamp, iteration, baseImage);
+            saveImageWithFoundPixels(pixelsToHighlight, timestamp, iteration, baseImage, sample);
             amountOfLastFoundPixels = pixelsToHighlight.size();
         }
     }
@@ -103,7 +103,7 @@ public class ImageLocator {
     }
 
     @SneakyThrows
-    private void saveImageWithFoundPixels(List<Point> possibleFirstPixels, long timestamp, String iteration, BufferedImage baseImage) {
+    private void saveImageWithFoundPixels(List<Point> possibleFirstPixels, long timestamp, String iteration, BufferedImage baseImage, Icon sample) {
         BufferedImage copy = copy(baseImage);
         Graphics2D g = copy.createGraphics();
         g.setColor(Color.MAGENTA);
@@ -117,7 +117,8 @@ public class ImageLocator {
             pathStr = debug_saveStepsDirectory;
             pathStr += pathStr.endsWith("/") ? "" : "/";
         }
-        pathStr += timestamp + "/" + iteration + ".png";
+        String iconName = sample.getFilename().substring(0, sample.getFilename().length() - 4);
+        pathStr += timestamp + "/" + iconName + "_" + iteration + ".png";
         Files.createDirectories(Paths.get(pathStr));
         File file = new File(pathStr);
         ImageIO.write(copy, "png", file);
