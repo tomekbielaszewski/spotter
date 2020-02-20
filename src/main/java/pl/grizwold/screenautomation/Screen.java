@@ -30,10 +30,12 @@ public class Screen {
      * The order may be random. Returned {@link Point} is location of left upper pixel of given icon. Returned {@link Point}
      * cooridnates are related to {@link Screen}.workingArea of enclosin {@link Screen} object (thus - subrectangle of
      * physical screen). In order to translate it to location on physical screen - translate it by {@link Screen}.offset
+     *
      * @param icon small image which will be searched on the screen
      * @return location of upper left pixel of given icon
      */
     public Optional<Point> locate(Icon icon) {
+        log.debug("Locating {}", icon.getFilename());
         return imageLocator.locate(icon)
                 .stream()
                 .findFirst();
@@ -46,16 +48,19 @@ public class Screen {
      * physical screen). In order to translate it to location on physical screen - translate it by {@link Screen}.offset
      * <br/><br/>
      * This method is similar to: {@link #locate(Icon)}
+     *
      * @param icon small image which will be searched on the screen
      * @return location of center pixel of given icon
      */
     public Optional<Point> locateMiddle(Icon icon) {
+        log.debug("Locating middle {}", icon.getFilename());
         BufferedImage iconImage = icon.getImage();
         return locate(icon)
                 .map(p -> p.translate(iconImage.getWidth() / 2, iconImage.getHeight() / 2));
     }
 
     public Optional<Rectangle> locateArea(Icon upperLeft, Icon lowerRight) {
+        log.debug("Locating area between {} and {}", upperLeft.getFilename(), lowerRight.getFilename());
         Optional<Point> upperLeftPoint = locate(upperLeft);
         Optional<Point> lowerRightPoint = locate(lowerRight);
 
@@ -72,25 +77,30 @@ public class Screen {
     }
 
     public List<Point> locateAll(Icon icon) {
+        log.debug("Locating all {}", icon.getFilename());
         return imageLocator.locate(icon);
     }
 
     public Screen refresh() {
+        log.debug("Refreshing screenshot");
         return new Screen(this.workingArea);
     }
 
     public boolean isVisible(Icon icon) {
+        log.debug("Checking visibility of {}", icon.getFilename());
         return locate(icon)
                 .isPresent();
     }
 
     public Screen drag(Icon from, Icon to) {
+        log.debug("Dragging from {} to {}", from.getFilename(), to.getFilename());
         return drag(from, to,
                 s -> log.error("Could not find icon to drag: " + from.getFilename()),
                 s -> log.error("Could not find icon to drag: " + to.getFilename()));
     }
 
     public Screen drag(Icon from, Icon to, Consumer<Screen> onNotFoundFrom, Consumer<Screen> onNotFoundTo) {
+        log.debug("Dragging from {} to {}", from.getFilename(), to.getFilename());
         locateMiddle(from)
                 .ifPresentOrElse(
                         fromP -> locateMiddle(to)
@@ -104,6 +114,7 @@ public class Screen {
     }
 
     public Screen drag(Icon from, Point to, Consumer<Screen> onNotFoundFrom) {
+        log.debug("Dragging from {} to {}:{}", from.getFilename(), to.x, to.y);
         locateMiddle(from)
                 .ifPresentOrElse(
                         fromP -> drag(fromP, to),
@@ -113,6 +124,7 @@ public class Screen {
     }
 
     public Screen drag(Point from, Point to) {
+        log.debug("Dragging from {}:{} to {}:{}", from.x, from.y, to.x, to.y);
         from = addOffset(from);
         to = addOffset(to);
 
@@ -145,6 +157,7 @@ public class Screen {
     }
 
     public Screen doubleClick(Point point, long delay) {
+        log.info("Double clicking {}:{} with delay {}", point.x, point.y, delay);
         this.click(point);
         halt(delay);
         this.click(point);
@@ -172,6 +185,7 @@ public class Screen {
     }
 
     public Screen click(Icon icon, Consumer<Screen> onNotFound) {
+        log.debug("Clicking {}", icon.getFilename());
         locateMiddle(icon)
                 .ifPresentOrElse(
                         this::click,
@@ -181,6 +195,7 @@ public class Screen {
     }
 
     public Screen click(Point point) {
+        log.debug("Clicking {}:{}", point.x, point.y);
         point = addOffset(point);
 
         robot.mouseMove(point.x, point.y);
@@ -198,6 +213,7 @@ public class Screen {
     }
 
     public Screen waitFor(Icon icon, long timeout, Consumer<Screen> onTimeout) {
+        log.debug("Waiting {}ms for {}", timeout, icon.getFilename());
         long start = System.currentTimeMillis();
         do {
             Screen refreshed = refresh();
@@ -205,6 +221,7 @@ public class Screen {
                 return refreshed;
             halt();
         } while ((System.currentTimeMillis() - start) < timeout);
+        log.debug("Couldn't find {} in specified time of {}ms", icon.getFilename(), timeout);
         onTimeout.accept(this.refresh());
         return this;
     }
