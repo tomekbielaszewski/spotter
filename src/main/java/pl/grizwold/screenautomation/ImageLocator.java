@@ -53,6 +53,7 @@ public class ImageLocator {
         List<Point> possibleFirstPixels = colourMap.computeIfAbsent(firstPixel, k -> new ArrayList<>());
 
         if (possibleFirstPixels.isEmpty()) {
+            log.debug("Icon {} not found", sample.getFilename());
             return possibleFirstPixels;
         }
 
@@ -72,6 +73,7 @@ public class ImageLocator {
                         .collect(Collectors.toList());
 
                 if (possibleFirstPixels.isEmpty()) {
+                    log.debug("Icon {} not found", sample.getFilename());
                     return possibleFirstPixels;
                 }
 
