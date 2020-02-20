@@ -25,8 +25,8 @@ public class Point {
         return new Point(this.x + dx, this.y + dy);
     }
 
-    public Point translate(Point dp) {
-        return translate(dp.x, dp.y);
+    public Point translate(Point vector) {
+        return translate(vector.x, vector.y);
     }
 
     public Point minus(Point vector) {
