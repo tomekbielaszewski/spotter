@@ -51,6 +51,10 @@ public class ImageLocator {
         int firstPixel = icon.getRGB(0, 0);
         List<Point> possibleFirstPixels = colourMap.computeIfAbsent(firstPixel, k -> new ArrayList<>());
 
+        if(possibleFirstPixels.isEmpty()) {
+            return possibleFirstPixels;
+        }
+
         if (debug_saveSteps && debug_saveStepsVerbose) {
             saveImageWithFoundPixels(possibleFirstPixels, start, 0);
         }
@@ -64,6 +68,9 @@ public class ImageLocator {
                         .filter(fpix -> colourMap.computeIfAbsent(pixel, k -> new ArrayList<>()).stream()
                                 .anyMatch(p -> fpix.translate(_x, _y).equals(p)))
                         .collect(Collectors.toList());
+                if(possibleFirstPixels.isEmpty()) {
+                    return possibleFirstPixels;
+                }
                 if (debug_saveSteps && debug_saveStepsVerbose) {
                     saveImageWithFoundPixels(possibleFirstPixels, start, y * icon.getHeight() + x);
                 }
