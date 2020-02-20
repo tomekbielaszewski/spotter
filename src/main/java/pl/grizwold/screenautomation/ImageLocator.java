@@ -23,6 +23,7 @@ public class ImageLocator {
     private boolean debug_saveSteps;
     private boolean debug_saveStepsVerbose;
     private String debug_saveStepsDirectory;
+    private int amountOfLastFoundPixels;
 
     public ImageLocator(BufferedImage base) {
         this.base = base;
@@ -55,9 +56,7 @@ public class ImageLocator {
             return possibleFirstPixels;
         }
 
-        if (debug_saveSteps && debug_saveStepsVerbose) {
-            saveImageWithFoundPixels(possibleFirstPixels, start, 0);
-        }
+        debugImage(this.base, possibleFirstPixels, 0, start);
 
         for (int x = 0; x < icon.getWidth(); x++) {
             for (int y = 0; y < icon.getHeight(); y++) {
@@ -76,15 +75,20 @@ public class ImageLocator {
                     return possibleFirstPixels;
                 }
 
-                if (debug_saveSteps && debug_saveStepsVerbose) {
-                    saveImageWithFoundPixels(possibleFirstPixels, start, y + x * icon.getWidth());
-                }
+                debugImage(this.base, possibleFirstPixels, y + x * icon.getWidth(), start);
             }
         }
 
         log.debug("Locating icon \"{}\" took: \t\t{} ms", sample.getFilename(), (System.currentTimeMillis() - start));
 
         return possibleFirstPixels;
+    }
+
+    private void debugImage(BufferedImage baseImage, List<Point> pixelsToHighlight, int iteration, long timestamp) {
+        if (debug_saveSteps && debug_saveStepsVerbose && pixelsToHighlight.size() != amountOfLastFoundPixels) {
+            saveImageWithFoundPixels(pixelsToHighlight, timestamp, iteration, baseImage);
+            amountOfLastFoundPixels = pixelsToHighlight.size();
+        }
     }
 
     private void setupDebugFlags() {
@@ -97,8 +101,8 @@ public class ImageLocator {
     }
 
     @SneakyThrows
-    private void saveImageWithFoundPixels(List<Point> possibleFirstPixels, long timestamp, int iteration) {
-        BufferedImage copy = copy(this.base);
+    private void saveImageWithFoundPixels(List<Point> possibleFirstPixels, long timestamp, int iteration, BufferedImage baseImage) {
+        BufferedImage copy = copy(baseImage);
         Graphics2D g = copy.createGraphics();
         g.setColor(Color.MAGENTA);
         for (Point p : possibleFirstPixels) {
