@@ -21,7 +21,6 @@ public class ImageLocator {
     private Map<Integer, List<Point>> colourMap = new HashMap<>();
 
     private boolean debug_saveSteps;
-    private boolean debug_saveStepsVerbose;
     private String debug_saveStepsDirectory;
     private int amountOfLastFoundPixels = -1;
 
@@ -87,7 +86,7 @@ public class ImageLocator {
     }
 
     private void debugImage(BufferedImage baseImage, Icon sample, List<Point> pixelsToHighlight, String iteration, long timestamp) {
-        if (debug_saveSteps && debug_saveStepsVerbose && pixelsToHighlight.size() != amountOfLastFoundPixels) {
+        if (debug_saveSteps && pixelsToHighlight.size() != amountOfLastFoundPixels) {
             saveImageWithFoundPixels(pixelsToHighlight, timestamp, iteration, baseImage, sample);
             amountOfLastFoundPixels = pixelsToHighlight.size();
         }
@@ -95,11 +94,11 @@ public class ImageLocator {
 
     private void setupDebugFlags() {
         Optional.ofNullable(System.getProperty("pl.grizwold.screenautomation.ImageLocator.save.steps"))
+                .filter("true"::equals)
                 .ifPresent(p -> this.debug_saveSteps = true);
         Optional.ofNullable(System.getProperty("pl.grizwold.screenautomation.ImageLocator.save.steps.directory"))
+                .filter(p -> p.length() > 0)
                 .ifPresent(p -> this.debug_saveStepsDirectory = p);
-        Optional.ofNullable(System.getProperty("pl.grizwold.screenautomation.ImageLocator.save.steps.verbose"))
-                .ifPresent(p -> this.debug_saveStepsVerbose = true);
     }
 
     @SneakyThrows
