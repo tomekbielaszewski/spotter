@@ -9,6 +9,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -97,7 +99,8 @@ public class ImageLocator {
             pathStr = debug_saveStepsDirectory;
             pathStr += pathStr.endsWith("/") ? "" : "/";
         }
-        pathStr += String.valueOf(timestamp) + "_" + String.valueOf(iteration) + ".png";
+        pathStr += String.valueOf(timestamp) + "/" + String.valueOf(iteration) + ".png";
+        Files.createDirectories(Paths.get(pathStr));
         File file = new File(pathStr);
         ImageIO.write(copy, "png", file);
     }
