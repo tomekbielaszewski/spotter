@@ -12,10 +12,11 @@ import java.util.function.Consumer;
 
 @Slf4j
 public class Screen {
-    private final ImageLocator imageLocator;
     private final Robot robot;
     private final Point offset;
     private final Rectangle workingArea;
+
+    private ImageLocator imageLocator;
 
     @SneakyThrows
     public Screen(Rectangle workingArea) {
@@ -83,7 +84,8 @@ public class Screen {
 
     public Screen refresh() {
         log.debug("Refreshing screenshot");
-        return new Screen(this.workingArea);
+        this.imageLocator = new ImageLocator(this.robot.createScreenCapture(workingArea));
+        return this;
     }
 
     public boolean isVisible(Icon icon) {
