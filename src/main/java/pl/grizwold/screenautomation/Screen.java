@@ -74,6 +74,16 @@ public class Screen {
         return this;
     }
 
+    public Screen waitAndDoubleClick(Icon icon, long timeout) {
+        Screen screen = waitFor(icon, timeout);
+        return doubleClick(icon);
+    }
+
+    public Screen waitAndDoubleClick(Icon icon, long timeout, Consumer<Screen> onNotFound, Consumer<Screen> onTimeout) {
+        Screen screen = waitFor(icon, timeout, onTimeout);
+        return doubleClick(icon, onNotFound);
+    }
+
     public Screen doubleClick(Icon icon) {
         return doubleClick(icon, s -> log.error("Couldn't find icon to double click: " + icon.getFilename()));
     }
