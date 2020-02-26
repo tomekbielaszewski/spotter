@@ -145,9 +145,9 @@ public class Screen {
         return doubleClick(icon);
     }
 
-    public Screen waitAndDoubleClick(Icon icon, long timeout, Consumer<Screen> onNotFound, Consumer<Screen> onTimeout) {
+    public Screen waitAndDoubleClick(Icon icon, long timeout, Consumer<Screen> onTimeout) {
         Screen screen = waitFor(icon, timeout, onTimeout);
-        return doubleClick(icon, onNotFound);
+        return doubleClick(icon);
     }
 
     public Screen doubleClick(Icon icon) {
