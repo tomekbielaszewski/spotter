@@ -12,6 +12,9 @@ import java.util.function.Consumer;
 
 @Slf4j
 public class Screen {
+    private static final long DEFAULT_TIMEOUT = 10000;
+    private static final long DEFAULT_ACTION_DELAY = 50;
+
     private final Robot robot;
     private final Point offset;
     private final Rectangle workingArea;
@@ -37,7 +40,7 @@ public class Screen {
      */
     public Optional<Point> locate(Icon icon) {
         log.debug("Locating {}", icon.getFilename());
-        return imageLocator.locate(icon)
+        return locateAll(icon)
                 .stream()
                 .findFirst();
     }
@@ -82,16 +85,32 @@ public class Screen {
         return imageLocator.locate(icon);
     }
 
+    public boolean isVisible(Icon icon) {
+        log.debug("Checking visibility of {}", icon.getFilename());
+        return locate(icon)
+                .isPresent();
+    }
+
     public Screen refresh() {
         log.debug("Refreshing screenshot");
         this.imageLocator = new ImageLocator(this.robot.createScreenCapture(workingArea));
         return this;
     }
 
-    public boolean isVisible(Icon icon) {
-        log.debug("Checking visibility of {}", icon.getFilename());
-        return locate(icon)
-                .isPresent();
+    public Screen waitAndDrag(Icon waitFor, Point to, long timeout) {
+        waitFor(waitFor, timeout);
+        return drag(waitFor, to,
+                s -> log.error("Could not find icon to drag: " + waitFor.getFilename()));
+    }
+
+    public Screen waitAndDrag(Icon from, Icon to, Consumer<Screen> ontimeout) {
+        return waitAndDrag(from, to, DEFAULT_TIMEOUT, ontimeout);
+    }
+
+    public Screen waitAndDrag(Icon from, Icon to, long timeout, Consumer<Screen> ontimeout) {
+        waitFor(from, timeout, ontimeout);
+        waitFor(to, timeout, ontimeout);
+        return drag(from, to);
     }
 
     public Screen drag(Icon from, Icon to) {
@@ -103,23 +122,19 @@ public class Screen {
 
     public Screen drag(Icon from, Icon to, Consumer<Screen> onNotFoundFrom, Consumer<Screen> onNotFoundTo) {
         log.debug("Dragging from {} to {}", from.getFilename(), to.getFilename());
-        locateMiddle(from)
+        locateMiddle(to)
                 .ifPresentOrElse(
-                        fromP -> locateMiddle(to)
-                                .ifPresentOrElse(
-                                        toP -> drag(fromP, toP),
-                                        () -> onNotFoundTo.accept(this)
-                                ),
-                        () -> onNotFoundFrom.accept(this)
+                        toPoint -> drag(from, toPoint, onNotFoundFrom),
+                        () -> onNotFoundTo.accept(this)
                 );
         return this;
     }
 
-    public Screen drag(Icon from, Point to, Consumer<Screen> onNotFoundFrom) {
-        log.debug("Dragging from {} to {}:{}", from.getFilename(), to.x, to.y);
+    public Screen drag(Icon from, Point toPoint, Consumer<Screen> onNotFoundFrom) {
+        log.debug("Dragging from {} to {}:{}", from.getFilename(), toPoint.x, toPoint.y);
         locateMiddle(from)
                 .ifPresentOrElse(
-                        fromP -> drag(fromP, to),
+                        fromPoint -> drag(fromPoint, toPoint),
                         () -> onNotFoundFrom.accept(this)
                 );
         return this;
@@ -140,13 +155,21 @@ public class Screen {
         return this;
     }
 
+    public Screen waitAndDoubleClick(Icon icon) {
+        return waitAndDoubleClick(icon, DEFAULT_TIMEOUT);
+    }
+
     public Screen waitAndDoubleClick(Icon icon, long timeout) {
-        Screen screen = waitFor(icon, timeout);
+        waitFor(icon, timeout);
         return doubleClick(icon);
     }
 
+    public Screen waitAndDoubleClick(Icon icon, Consumer<Screen> onTimeout) {
+        return waitAndDoubleClick(icon, DEFAULT_TIMEOUT, onTimeout);
+    }
+
     public Screen waitAndDoubleClick(Icon icon, long timeout, Consumer<Screen> onTimeout) {
-        Screen screen = waitFor(icon, timeout, onTimeout);
+        waitFor(icon, timeout, onTimeout);
         return doubleClick(icon);
     }
 
@@ -164,8 +187,7 @@ public class Screen {
     }
 
     public Screen doubleClick(Point point) {
-        this.doubleClick(point, 50);
-        return this;
+        return doubleClick(point, DEFAULT_ACTION_DELAY);
     }
 
     public Screen doubleClick(Point point, long delay) {
@@ -176,20 +198,22 @@ public class Screen {
         return this;
     }
 
-    public Screen waitAndDrag(Icon waitFor, Point to, long timeout) {
-        Screen screen = waitFor(waitFor, timeout);
-        return screen.drag(waitFor, to,
-                s -> log.error("Could not find icon to drag: " + waitFor.getFilename()));
+    public Screen waitAndClick(Icon icon) {
+        return waitAndClick(icon, DEFAULT_TIMEOUT);
     }
 
     public Screen waitAndClick(Icon icon, long timeout) {
-        Screen screen = waitFor(icon, timeout);
-        return screen.click(icon);
+        waitFor(icon, timeout);
+        return click(icon);
     }
 
-    public Screen waitAndClick(Icon icon, long timeout, Consumer<Screen> onNotFound, Consumer<Screen> onTimeout) {
-        Screen screen = waitFor(icon, timeout, onTimeout);
-        return screen.click(icon, onNotFound);
+    public Screen waitAndClick(Icon icon, Consumer<Screen> onTimeout) {
+        return waitAndClick(icon, DEFAULT_TIMEOUT, onTimeout);
+    }
+
+    public Screen waitAndClick(Icon icon, long timeout, Consumer<Screen> onTimeout) {
+        waitFor(icon, timeout, onTimeout);
+        return click(icon);
     }
 
     public Screen click(Icon icon) {
@@ -211,11 +235,15 @@ public class Screen {
         point = addOffset(point);
 
         robot.mouseMove(point.x, point.y);
-        this.halt();
+        halt();
         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         halt();
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
         return this;
+    }
+
+    public Screen waitFor(Icon icon) {
+        return waitFor(icon, DEFAULT_TIMEOUT);
     }
 
     public Screen waitFor(Icon icon, long timeout) {
@@ -239,7 +267,7 @@ public class Screen {
     }
 
     public Screen halt() {
-        return halt(50);
+        return halt(DEFAULT_ACTION_DELAY);
     }
 
     @SneakyThrows
