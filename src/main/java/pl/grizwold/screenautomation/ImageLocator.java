@@ -3,6 +3,7 @@ package pl.grizwold.screenautomation;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -17,9 +18,11 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class ImageLocator {
-    private final BufferedImage base;
-    private Map<Integer, List<Point>> colourMap = new HashMap<>();
+    private static final int MASK = -65281; //pure magenta color
 
+    private final BufferedImage base;
+
+    private Map<Integer, List<Point>> colourMap = new HashMap<>();
     private boolean debug_saveSteps;
     private String debug_saveStepsDirectory;
     private int amountOfLastFoundPixels = -1;
@@ -44,45 +47,58 @@ public class ImageLocator {
         log.debug("Building screen color map took: {} ms", (System.currentTimeMillis() - start));
     }
 
-    public List<Point> locate(final Icon sample) {
+    @Nonnull
+    public List<Point> locate(@Nonnull final Icon icon_) {
         long start = System.currentTimeMillis();
+        final BufferedImage sample = icon_.getImage();
+        List<Point> possibleFirstPixels = new ArrayList<>();
+        boolean startedSampling = false;
+        Point[] firstSampledLocation = new Point[1];
 
-        final BufferedImage icon = sample.getImage();
-        int firstPixel = icon.getRGB(0, 0);
-        List<Point> possibleFirstPixels = colourMap.computeIfAbsent(firstPixel, k -> new ArrayList<>());
+        for (int x = 0; x < sample.getWidth(); x++) {
+            for (int y = 0; y < sample.getHeight(); y++) {
+                int pixel = sample.getRGB(x, y);
+                final Point location = new Point(x, y);
 
-        debugImage(this.base, sample, possibleFirstPixels, "0_0", start);
+                if (pixel == MASK) continue;
+                if (!startedSampling) {
+                    possibleFirstPixels = colourMap.computeIfAbsent(pixel, k -> new ArrayList<>());
+                    startedSampling = true;
+                    firstSampledLocation[0] = location;
+                } else {
+                    possibleFirstPixels = possibleFirstPixels.stream()
+                            .filter(fpix -> colourMap.computeIfAbsent(pixel, k -> new ArrayList<>()).stream()
+                                    .anyMatch(p -> fpix.translate(location.minus(firstSampledLocation[0]))
+                                            .equals(p)))
+                            .collect(Collectors.toList());
+                }
 
-        if (possibleFirstPixels.isEmpty()) {
-            log.debug("Icon {} not found", sample.getFilename());
-            return possibleFirstPixels;
-        }
-
-        for (int x = 0; x < icon.getWidth(); x++) {
-            for (int y = 0; y < icon.getHeight(); y++) {
-                if (x == 0 && y == 0) continue;
-
-                int pixel = icon.getRGB(x, y);
-                final int _x = x;
-                final int _y = y;
-
-                possibleFirstPixels = possibleFirstPixels.stream()
-                        .filter(fpix -> colourMap.computeIfAbsent(pixel, k -> new ArrayList<>()).stream()
-                                .anyMatch(p -> fpix.translate(_x, _y).equals(p)))
-                        .collect(Collectors.toList());
-
-                debugImage(this.base, sample, possibleFirstPixels, x + "_" + y, start);
+                debugImage(this.base, icon_, possibleFirstPixels, x + "_" + y, start);
 
                 if (possibleFirstPixels.isEmpty()) {
-                    log.debug("Icon {} not found", sample.getFilename());
+                    log.debug("Icon {} not found", icon_.getFilename());
                     return possibleFirstPixels;
                 }
             }
         }
 
-        log.debug("Locating icon \"{}\" took: \t\t{} ms", sample.getFilename(), (System.currentTimeMillis() - start));
+        log.debug("Locating icon \"{}\" took: {} ms", icon_.getFilename(), (System.currentTimeMillis() - start));
+
+        possibleFirstPixels = possibleFirstPixels.stream()
+                .map(p -> p.minus(firstSampledLocation[0]))
+                .collect(Collectors.toList());
 
         return possibleFirstPixels;
+    }
+
+    public void activateDebugging(String directory) {
+        this.debug_saveSteps = true;
+        this.debug_saveStepsDirectory = Optional.ofNullable(directory).orElse("debug");
+    }
+
+    public void deactivateDebugging() {
+        this.debug_saveSteps = false;
+        this.debug_saveStepsDirectory = null;
     }
 
     private void debugImage(BufferedImage baseImage, Icon sample, List<Point> pixelsToHighlight, String iteration, long timestamp) {
@@ -102,7 +118,7 @@ public class ImageLocator {
     }
 
     @SneakyThrows
-    private void saveImageWithFoundPixels(List<Point> possibleFirstPixels, long timestamp, String iteration, BufferedImage baseImage, Icon sample) {
+    private void saveImageWithFoundPixels(@Nonnull List<Point> possibleFirstPixels, long timestamp, String iteration, BufferedImage baseImage, Icon sample) {
         BufferedImage copy = copy(baseImage);
         Graphics2D g = copy.createGraphics();
         g.setColor(Color.MAGENTA);
@@ -123,11 +139,11 @@ public class ImageLocator {
         ImageIO.write(copy, "png", file);
     }
 
-    private BufferedImage copy(BufferedImage bi) {
+    @Nonnull
+    private BufferedImage copy(@Nonnull BufferedImage bi) {
         ColorModel cm = bi.getColorModel();
         boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
         WritableRaster raster = bi.copyData(null);
         return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
     }
-
 }
