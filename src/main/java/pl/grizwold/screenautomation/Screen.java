@@ -19,6 +19,7 @@ public class Screen {
     private final Point offset;
     private final Rectangle workingArea;
 
+    private BufferedImage screenCapture;
     private ImageLocator imageLocator;
 
     @SneakyThrows
@@ -26,7 +27,7 @@ public class Screen {
         this.offset = new Point(workingArea.getLocation());
         this.workingArea = workingArea;
         this.robot = new Robot();
-        this.imageLocator = new ImageLocator(robot.createScreenCapture(workingArea));
+        refresh();
     }
 
     /**
@@ -93,7 +94,8 @@ public class Screen {
 
     public Screen refresh() {
         log.debug("Refreshing screenshot");
-        this.imageLocator = new ImageLocator(this.robot.createScreenCapture(workingArea));
+        this.screenCapture = robot.createScreenCapture(workingArea);
+        this.imageLocator = new ImageLocator(screenCapture);
         return this;
     }
 
@@ -252,6 +254,10 @@ public class Screen {
         });
     }
 
+    public Screen waitFor(Icon icon, Consumer<Screen> onTimeout) {
+        return waitFor(icon, DEFAULT_TIMEOUT, onTimeout);
+    }
+
     public Screen waitFor(Icon icon, long timeout, Consumer<Screen> onTimeout) {
         log.debug("Waiting {}ms for {}", timeout, icon.getFilename());
         long start = System.currentTimeMillis();
@@ -274,6 +280,18 @@ public class Screen {
     public Screen halt(long delay) {
         Thread.sleep(delay);
         return this;
+    }
+
+    public BufferedImage getScreenCapture() {
+        return screenCapture;
+    }
+
+    public void activateDebugging() {
+        this.imageLocator.activateDebugging("debug");
+    }
+
+    public void deactivateDebugging() {
+        this.imageLocator.deactivateDebugging();
     }
 
     private Point addOffset(Point p) {
