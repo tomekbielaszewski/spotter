@@ -7,8 +7,6 @@ import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.WritableRaster;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -16,21 +14,6 @@ import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * {@link ImageLocator} class is responsible for locating given {@link Icon} on bigger "base" image provided in constructor.<br/>
- * Pure magenta pixels on subimage are ignored. rgb(255,0,255)<br/>
- * Finding subimages which pixel colors are much less common on base image is much faster. Especially when most unique
- * pixel color is located on upper left corner of subimage.<br/><br/>
- *
- * Algorithm for locating {@link Icon} subimage goes as follows:<br/>
- * - Preprocess base image by mapping each pixels color to all locations on screen. Map<PixelColor, LocationOnScreen><br/>
- * - locate first non-magenta pixel on subimage starting from upper left corner and going down<br/>
- * - find all locations of found pixel color on base image<br/>
- * - for every next non-magenta pixel:<br/>
- *   - calculate vector between location of first non-magenta pixel (in subimage coordinates) and this pixel (in subimage coordinates)<br/>
- *   - find all locations of this pixel color on base image<br/>
- *   - filter out all first pixel locations which are not equal to next pixel location subtracted by vector calculated above<br/>
- **/
 @Slf4j
 public class ImageLocator {
     private static final int MASK = -65281; //pure magenta color
@@ -42,10 +25,7 @@ public class ImageLocator {
     private String debug_saveStepsDirectory;
     private int amountOfLastFoundPixels = -1;
 
-    /**
-     * @param base image on which Icon will be searched
-     */
-    public ImageLocator(@Nonnull BufferedImage base) {
+    public ImageLocator(BufferedImage base) {
         this.base = base;
         buildColorMap();
         setupDebugFlags();
@@ -65,15 +45,10 @@ public class ImageLocator {
         log.debug("Building screen color map took: {} ms", (System.currentTimeMillis() - start));
     }
 
-    /**
-     * Founds all locations of subimage on base image.
-     * @param subimage {@link BufferedImage} wrapper of searched image
-     * @return all found locations of given {@link Icon} subimage found on base image
-     */
     @Nonnull
-    public List<Point> locate(@Nonnull final Icon subimage) {
+    public List<Point> locate(@Nonnull final Icon icon_) {
         long start = System.currentTimeMillis();
-        final BufferedImage sample = subimage.getImage();
+        final BufferedImage sample = icon_.getImage();
         List<Point> possibleFirstPixels = new ArrayList<>();
         boolean startedSampling = false;
         Point[] firstSampledLocation = new Point[1];
@@ -96,16 +71,16 @@ public class ImageLocator {
                             .collect(Collectors.toList());
                 }
 
-                debugImage(this.base, subimage, possibleFirstPixels, x + "_" + y, start);
+                debugImage(this.base, icon_, possibleFirstPixels, x + "_" + y, start);
 
                 if (possibleFirstPixels.isEmpty()) {
-                    log.debug("Icon {} not found", subimage.getFilename());
+                    log.debug("Icon {} not found", icon_.getFilename());
                     return possibleFirstPixels;
                 }
             }
         }
 
-        log.debug("Locating icon \"{}\" took: {} ms", subimage.getFilename(), (System.currentTimeMillis() - start));
+        log.debug("Locating icon \"{}\" took: {} ms", icon_.getFilename(), (System.currentTimeMillis() - start));
 
         possibleFirstPixels = possibleFirstPixels.stream()
                 .map(p -> p.minus(firstSampledLocation[0]))
@@ -114,22 +89,15 @@ public class ImageLocator {
         return possibleFirstPixels;
     }
 
-    /**
-     * Activating image debugging will visualize each iteration of image locating algorithm by saving images with
-     * located possible first pixels in given directory. Possible first pixels are marked by magenta color and every next
-     * algorithm iteration should filter out some of the pixels (see algorithm description on {@link ImageLocator}).
-     * Last saved iteration will be clear base image in case of not finding the subimage, or single magenta pixel in case of
-     * finding single location or multiple pixels in case of finding many subimages on base image.
-     * @param directory where algorithm iteration steps will be visualized by saving image files
-     */
-    public void activateDebugging(String directory) {
-        this.debug_saveSteps = true;
-        this.debug_saveStepsDirectory = Optional.ofNullable(directory).orElse("debug");
+    public void activateDebugging() {
+        this.activateDebugging(null);
     }
 
-    /**
-     * Deactivates algorithm visualizer. See: activateDebugging
-     */
+    public void activateDebugging(String directory) {
+        this.debug_saveSteps = true;
+        this.debug_saveStepsDirectory = Optional.ofNullable(directory).orElse("image_locator_debug");
+    }
+
     public void deactivateDebugging() {
         this.debug_saveSteps = false;
         this.debug_saveStepsDirectory = null;
@@ -153,7 +121,7 @@ public class ImageLocator {
 
     @SneakyThrows
     private void saveImageWithFoundPixels(@Nonnull List<Point> possibleFirstPixels, long timestamp, String iteration, BufferedImage baseImage, Icon sample) {
-        BufferedImage copy = copy(baseImage);
+        BufferedImage copy = ImageUtil.copy(baseImage);
         Graphics2D g = copy.createGraphics();
         g.setColor(Color.MAGENTA);
         for (Point p : possibleFirstPixels) {
@@ -171,13 +139,5 @@ public class ImageLocator {
         Files.createDirectories(Paths.get(pathStr));
         File file = new File(pathStr);
         ImageIO.write(copy, "png", file);
-    }
-
-    @Nonnull
-    private BufferedImage copy(@Nonnull BufferedImage bi) {
-        ColorModel cm = bi.getColorModel();
-        boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
-        WritableRaster raster = bi.copyData(null);
-        return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
     }
 }
