@@ -288,12 +288,14 @@ public class Screen {
         return screenCapture;
     }
 
-    public void activateDebugging() {
-        this.imageLocator.activateDebugging("debug");
+    public Screen activateDebugging() {
+        this.imageLocator.activateDebugging();
+        return this;
     }
 
-    public void deactivateDebugging() {
+    public Screen deactivateDebugging() {
         this.imageLocator.deactivateDebugging();
+        return this;
     }
 
     private Point addOffset(Point p) {
