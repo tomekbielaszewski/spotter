@@ -74,6 +74,8 @@ public class Screen {
 
             Point p1 = upperLeftPoint.get();
             Point p2 = lowerRightPoint.get().translate(lowerRightImage.getWidth(), lowerRightImage.getHeight());
+            p1 = addOffset(p1);
+            p2 = addOffset(p2);
 
             return Optional.of(new Rectangle(p1.toAwt(), p2.minus(p1).toDimension()));
         }
