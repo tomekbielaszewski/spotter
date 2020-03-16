@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Optional;
@@ -98,6 +99,22 @@ public class Screen {
         log.debug("Refreshing screenshot");
         this.screenCapture = robot.createScreenCapture(workingArea);
         this.imageLocator = new ImageLocator(screenCapture);
+        return this;
+    }
+
+    /**
+     * @param key use {@link KeyEvent} constants
+     */
+    public Screen press(int key) {
+        robot.keyPress(key);
+        halt(100);
+        robot.keyRelease(key);
+        return this;
+    }
+
+    public Screen move(Point to) {
+        to = addOffset(to);
+        robot.mouseMove(to.x, to.y);
         return this;
     }
 
