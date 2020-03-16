@@ -1,8 +1,12 @@
 package pl.grizwold.screenautomation;
 
-import java.awt.*;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
+import java.awt.*;
+
+@ToString
+@EqualsAndHashCode
 public class Point {
     public final int x;
     public final int y;
@@ -19,6 +23,10 @@ public class Point {
 
     public Point(java.awt.Point from) {
         this(from.x, from.y);
+    }
+
+    public Point() {
+        this(0, 0);
     }
 
     public Point translate(int dx, int dy) {
@@ -39,19 +47,5 @@ public class Point {
 
     public Dimension toDimension() {
         return new Dimension(this.x, this.y);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Point point = (Point) o;
-        return x == point.x &&
-                y == point.y;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(x, y);
     }
 }
