@@ -1,13 +1,13 @@
-package pl.grizwold.screenautomation;
+package pl.grizwold.screenautomation.processing;
 
 import lombok.extern.slf4j.Slf4j;
+import pl.grizwold.screenautomation.model.Point;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -200,12 +200,11 @@ public class ImageDiff {
 
     private void drawRegions(int[][] diffMatrix, BufferedImage copy, List<Color> colors) {
         Graphics2D g = copy.createGraphics();
-        long seed = System.currentTimeMillis();
         for (int x = 0; x < copy.getWidth(); x++) {
             for (int y = 0; y < copy.getHeight(); y++) {
                 int region = diffMatrix[y][x] - 2;
                 if (region >= 0) {
-                    int colorIndex = new Random(region + seed).nextInt(colors.size());
+                    int colorIndex = region % (colors.size() - 1);
                     g.setColor(colors.get(colorIndex));
                 } else {
                     g.setColor(Color.BLACK);

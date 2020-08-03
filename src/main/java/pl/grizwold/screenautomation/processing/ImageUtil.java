@@ -1,4 +1,4 @@
-package pl.grizwold.screenautomation;
+package pl.grizwold.screenautomation.processing;
 
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
@@ -30,5 +30,10 @@ public class ImageUtil {
         }
         Files.createDirectories(Paths.get(filepath));
         ImageIO.write(image, "png", file);
+    }
+
+    @SneakyThrows
+    public static BufferedImage read(String filepath) {
+        return ImageIO.read(Paths.get(filepath).toFile());
     }
 }
