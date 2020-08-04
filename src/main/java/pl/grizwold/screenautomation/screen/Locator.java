@@ -1,8 +1,8 @@
 package pl.grizwold.screenautomation.screen;
 
 import lombok.extern.slf4j.Slf4j;
-import pl.grizwold.screenautomation.image.processing.ImageComparator;
-import pl.grizwold.screenautomation.image.processing.PixelByPixelImageLocator;
+import pl.grizwold.screenautomation.processing.ImageComparator;
+import pl.grizwold.screenautomation.processing.PixelByPixelImageLocator;
 import pl.grizwold.screenautomation.model.Icon;
 import pl.grizwold.screenautomation.model.Point;
 
