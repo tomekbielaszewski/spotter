@@ -3,7 +3,9 @@ package pl.grizwold.screenautomation.processing;
 import lombok.extern.slf4j.Slf4j;
 import pl.grizwold.screenautomation.model.Point;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;

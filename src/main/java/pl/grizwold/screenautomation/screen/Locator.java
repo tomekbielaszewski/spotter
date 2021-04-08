@@ -1,10 +1,10 @@
 package pl.grizwold.screenautomation.screen;
 
 import lombok.extern.slf4j.Slf4j;
-import pl.grizwold.screenautomation.processing.ImageComparator;
-import pl.grizwold.screenautomation.processing.PixelByPixelImageLocator;
 import pl.grizwold.screenautomation.model.Icon;
 import pl.grizwold.screenautomation.model.Point;
+import pl.grizwold.screenautomation.processing.ImageComparator;
+import pl.grizwold.screenautomation.processing.PixelByPixelImageLocator;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -90,7 +90,7 @@ public class Locator {
         log.debug("Checking if {} is located at {}", icon.getFilename(), p.toString());
         BufferedImage image = icon.getImage();
 
-        if(p.x < 0 || p.y < 0 || p.x + image.getWidth() > this.base.getWidth() || p.y + image.getHeight() > this.base.getHeight()) {
+        if (p.x < 0 || p.y < 0 || p.x + image.getWidth() > this.base.getWidth() || p.y + image.getHeight() > this.base.getHeight()) {
             return false;
         }
 
