@@ -152,7 +152,7 @@ public class PixelByPixelImageLocator {
     }
 
     private void setupDebugFlags() {
-        Optional.ofNullable(System.getProperty("pl.grizwold.screenautomation.ImageLocator.save.steps"))
+        Optional.ofNullable(System.getProperty("pl.grizwold.screenautomation.ImageLocator.save.steps.enabled"))
                 .filter("true"::equals)
                 .ifPresent(_ -> this.debug_saveSteps = true);
         Optional.ofNullable(System.getProperty("pl.grizwold.screenautomation.ImageLocator.save.steps.directory"))
