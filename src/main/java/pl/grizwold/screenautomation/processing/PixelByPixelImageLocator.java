@@ -140,7 +140,7 @@ public class PixelByPixelImageLocator {
 
     private void saveResultVisualization(BufferedImage base, Icon icon, List<Point> possibleFirstPixels, long timestamp) {
         if (debug_saveSteps) {
-            if (possibleFirstPixels.size() > 0) {
+            if (!possibleFirstPixels.isEmpty()) {
                 List<Rectangle> rectangles = possibleFirstPixels.stream()
                         .map(p -> new Rectangle(p.toAwt(), icon.getDimension()))
                         .collect(Collectors.toList());
@@ -154,9 +154,9 @@ public class PixelByPixelImageLocator {
     private void setupDebugFlags() {
         Optional.ofNullable(System.getProperty("pl.grizwold.screenautomation.ImageLocator.save.steps"))
                 .filter("true"::equals)
-                .ifPresent(p -> this.debug_saveSteps = true);
+                .ifPresent(_ -> this.debug_saveSteps = true);
         Optional.ofNullable(System.getProperty("pl.grizwold.screenautomation.ImageLocator.save.steps.directory"))
-                .filter(p -> p.length() > 0)
+                .filter(p -> !p.isEmpty())
                 .ifPresent(p -> this.debug_saveStepsDirectory = p);
     }
 

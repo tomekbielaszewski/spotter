@@ -11,7 +11,7 @@ import static java.time.Instant.now;
 @Slf4j
 public class ImageComparator {
     private static final int MASK = -65281; //pure magenta color
-    private int tolerance;
+    private final int tolerance;
 
     public ImageComparator(int tolerance) {
         this.tolerance = tolerance;

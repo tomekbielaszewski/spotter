@@ -22,7 +22,7 @@ public class ColorMapImageLocator {
 
     private final BufferedImage base;
 
-    private Map<Integer, List<Point>> colourMap = new HashMap<>();
+    private final Map<Integer, List<Point>> colorMap = new HashMap<>();
     private boolean debug_saveSteps;
     private String debug_saveStepsDirectory = "image_locator_debug";
     private int amountOfLastFoundPixels = -1;
@@ -39,7 +39,7 @@ public class ColorMapImageLocator {
         for (int x = 0; x < base.getWidth(); x++) {
             for (int y = 0; y < base.getHeight(); y++) {
                 int pixel = base.getRGB(x, y);
-                List<Point> points = colourMap.computeIfAbsent(pixel, k -> new ArrayList<>());
+                List<Point> points = colorMap.computeIfAbsent(pixel, _ -> new ArrayList<>());
                 points.add(new Point(x, y));
             }
         }
@@ -63,12 +63,12 @@ public class ColorMapImageLocator {
                 if (pixel == MASK) continue;
 
                 if (!startedSampling) {
-                    possibleFirstPixels = colourMap.computeIfAbsent(pixel, k -> new ArrayList<>());
+                    possibleFirstPixels = colorMap.computeIfAbsent(pixel, _ -> new ArrayList<>());
                     startedSampling = true;
                     firstSampledLocation[0] = location;
                 } else {
                     possibleFirstPixels = possibleFirstPixels.stream()
-                            .filter(fpix -> colourMap.computeIfAbsent(pixel, k -> new ArrayList<>()).stream()
+                            .filter(fpix -> colorMap.computeIfAbsent(pixel, _ -> new ArrayList<>()).stream()
                                     .anyMatch(p -> fpix.translate(location.minus(firstSampledLocation[0]))
                                             .equals(p)))
                             .collect(Collectors.toList());
@@ -122,7 +122,7 @@ public class ColorMapImageLocator {
     }
 
     private void saveResultVisualization(BufferedImage base, Icon icon, List<Point> possibleFirstPixels, long timestamp) {
-        if (debug_saveSteps && possibleFirstPixels.size() > 0) {
+        if (debug_saveSteps && !possibleFirstPixels.isEmpty()) {
             List<Rectangle> rectangles = possibleFirstPixels.stream()
                     .map(p -> new Rectangle(p.toAwt(), icon.getDimension()))
                     .collect(Collectors.toList());
@@ -133,9 +133,9 @@ public class ColorMapImageLocator {
     private void setupDebugFlags() {
         Optional.ofNullable(System.getProperty("pl.grizwold.screenautomation.ImageLocator.save.steps"))
                 .filter("true"::equals)
-                .ifPresent(p -> this.debug_saveSteps = true);
+                .ifPresent(_ -> this.debug_saveSteps = true);
         Optional.ofNullable(System.getProperty("pl.grizwold.screenautomation.ImageLocator.save.steps.directory"))
-                .filter(p -> p.length() > 0)
+                .filter(p -> !p.isEmpty())
                 .ifPresent(p -> this.debug_saveStepsDirectory = p);
     }
 

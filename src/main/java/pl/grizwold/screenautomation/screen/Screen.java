@@ -1,5 +1,6 @@
 package pl.grizwold.screenautomation.screen;
 
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import pl.grizwold.screenautomation.model.Icon;
@@ -19,17 +20,21 @@ import java.util.function.BiConsumer;
 public class Screen {
     private static final long DEFAULT_TIMEOUT = Integer.MAX_VALUE;
     private static final long DEFAULT_ACTION_DELAY = 50;
+    private static final BiConsumer<Icon, Screen> DO_NOTHING = (_, _) -> {};
+    private static final BiConsumer<List<Icon>, Screen> GROUP_DO_NOTHING = (_, _) -> {};
 
     private final Robot robot;
     private final Point offset;
     private final Rectangle workingArea;
 
+    @Getter
     private BufferedImage screenCapture;
     private PixelByPixelImageLocator imageLocator;
     private ImageComparator imageComparator;
     private long waitingLogTimeout = 10000;
-    private BiConsumer<Icon, Screen> defaultTimeoutHandler;
-    private BiConsumer<Icon, Screen> defaultIconNotFoundHandler;
+    private BiConsumer<Icon, Screen> defaultTimeoutHandler = DO_NOTHING;
+    private BiConsumer<Icon, Screen> defaultIconNotFoundHandler = DO_NOTHING;
+    private BiConsumer<List<Icon>, Screen> defaultGroupTimeoutHandler = GROUP_DO_NOTHING;
     private int colorTolerance = 30;
 
     @SneakyThrows
@@ -313,8 +318,7 @@ public class Screen {
     }
 
     public Optional<Icon> waitFor(List<Icon> icons, long timeout) {
-        return waitFor(icons, timeout, (i, s) -> {
-        });
+        return waitFor(icons, timeout, defaultGroupTimeoutHandler);
     }
 
     public Optional<Icon> waitFor(List<Icon> icons, long timeout, BiConsumer<List<Icon>, Screen> onTimeout) {
@@ -348,10 +352,6 @@ public class Screen {
         return this;
     }
 
-    public BufferedImage getScreenCapture() {
-        return screenCapture;
-    }
-
     public Screen activateDebugging() {
         this.imageLocator.activateDebugging();
         return this;
@@ -368,25 +368,19 @@ public class Screen {
     }
 
     public Screen withIgnoringTimeouts() {
-        return doOnTimeout((i, s) -> {
-        });
+        return doOnTimeout(DO_NOTHING);
     }
 
     public Screen withIgnoringNotFound() {
-        return doOnIconNotFound((i, s) -> {
-        });
+        return doOnIconNotFound(DO_NOTHING);
     }
 
     public Screen withLoggingTimeouts() {
-        return doOnTimeout((i, s) -> {
-            log.warn("Waiting for {} timed out!", i.getFilename());
-        });
+        return doOnTimeout((i, _) -> log.warn("Waiting for {} timed out!", i.getFilename()));
     }
 
     public Screen withLoggingNotFound() {
-        return doOnIconNotFound((i, s) -> {
-            log.warn("Icon {} not found", i.getFilename());
-        });
+        return doOnIconNotFound((i, _) -> log.warn("Icon {} not found", i.getFilename()));
     }
 
     public Screen doOnTimeout(BiConsumer<Icon, Screen> defaultTimeoutHandler) {
@@ -396,6 +390,11 @@ public class Screen {
 
     public Screen doOnIconNotFound(BiConsumer<Icon, Screen> defaultIconNotFoundHandler) {
         this.defaultIconNotFoundHandler = defaultIconNotFoundHandler;
+        return this;
+    }
+
+    public Screen doOnGroupTimeout(BiConsumer<List<Icon>, Screen> defaultTimeoutHandler) {
+        this.defaultGroupTimeoutHandler = defaultTimeoutHandler;
         return this;
     }
 
