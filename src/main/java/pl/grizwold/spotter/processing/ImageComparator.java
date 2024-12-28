@@ -1,4 +1,4 @@
-package pl.grizwold.screenautomation.processing;
+package pl.grizwold.spotter.processing;
 
 import lombok.extern.slf4j.Slf4j;
 

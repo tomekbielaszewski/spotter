@@ -1,4 +1,4 @@
-[![](https://jitpack.io/v/tomekbielaszewski/screen-automation.svg)](https://jitpack.io/#tomekbielaszewski/screen-automation)
+[![](https://jitpack.io/v/tomekbielaszewski/spotter.svg)](https://jitpack.io/#tomekbielaszewski/spotter)
 
 <img src="./spotter.webp" width="200px">
 
@@ -11,7 +11,7 @@ algorithms are simple, utilizing pixel-by-pixel comparison and color-map reverse
 
 ## Installation
 
-All versions are listed on [jitpack](https://jitpack.io/#tomekbielaszewski/screen-automation)
+All versions are listed on [jitpack](https://jitpack.io/#tomekbielaszewski/spotter)
 
 ### Maven
 
@@ -27,7 +27,7 @@ All versions are listed on [jitpack](https://jitpack.io/#tomekbielaszewski/scree
 ```xml
 	<dependency>
 	    <groupId>com.github.tomekbielaszewski</groupId>
-	    <artifactId>screen-automation</artifactId>
+	    <artifactId>spotter</artifactId>
 	    <version>master-SNAPSHOT</version>
 	</dependency>
 ```
@@ -46,7 +46,7 @@ All versions are listed on [jitpack](https://jitpack.io/#tomekbielaszewski/scree
 
 ```groovy
 	dependencies {
-	        implementation 'com.github.tomekbielaszewski:screen-automation:Tag'
+	        implementation 'com.github.tomekbielaszewski:spotter:Tag'
 	}
 ```
 
@@ -54,14 +54,14 @@ All versions are listed on [jitpack](https://jitpack.io/#tomekbielaszewski/scree
 
 Two system properties are used for image finding debugging 
 
-`pl.grizwold.screenautomation.ImageLocator.save.steps.enabled`  
-`pl.grizwold.screenautomation.ImageLocator.save.steps.directory` - relative directory path to store step-by-step images as the ImageLocator searches the `Icon` on `Screen`
+`pl.grizwold.spotter.ImageLocator.save.steps.enabled`  
+`pl.grizwold.spotter.ImageLocator.save.steps.directory` - relative directory path to store step-by-step images as the ImageLocator searches the `Icon` on `Screen`
 
 ## New development release
 
 Each commit is built on dedicated jitpack page and released as one of the versions there
 
-https://jitpack.io/#tomekbielaszewski/screen-automation
+https://jitpack.io/#tomekbielaszewski/spotter
 
 If the build is not triggered automatically - the button "Get it" will trigger it - logs should start to show progress then.
 

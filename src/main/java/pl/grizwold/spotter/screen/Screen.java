@@ -1,12 +1,12 @@
-package pl.grizwold.screenautomation.screen;
+package pl.grizwold.spotter.screen;
 
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import pl.grizwold.screenautomation.model.Icon;
-import pl.grizwold.screenautomation.model.Point;
-import pl.grizwold.screenautomation.processing.ImageComparator;
-import pl.grizwold.screenautomation.processing.PixelByPixelImageLocator;
+import pl.grizwold.spotter.model.Icon;
+import pl.grizwold.spotter.model.Point;
+import pl.grizwold.spotter.processing.ImageComparator;
+import pl.grizwold.spotter.processing.PixelByPixelImageLocator;
 
 import java.awt.*;
 import java.awt.event.InputEvent;

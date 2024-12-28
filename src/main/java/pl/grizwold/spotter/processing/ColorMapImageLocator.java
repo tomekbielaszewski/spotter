@@ -1,9 +1,9 @@
-package pl.grizwold.screenautomation.processing;
+package pl.grizwold.spotter.processing;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import pl.grizwold.screenautomation.model.Icon;
-import pl.grizwold.screenautomation.model.Point;
+import pl.grizwold.spotter.model.Icon;
+import pl.grizwold.spotter.model.Point;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
@@ -131,10 +131,10 @@ public class ColorMapImageLocator {
     }
 
     private void setupDebugFlags() {
-        Optional.ofNullable(System.getProperty("pl.grizwold.screenautomation.ImageLocator.save.steps"))
+        Optional.ofNullable(System.getProperty("pl.grizwold.spotter.ImageLocator.save.steps.enabled"))
                 .filter("true"::equals)
                 .ifPresent(_ -> this.debug_saveSteps = true);
-        Optional.ofNullable(System.getProperty("pl.grizwold.screenautomation.ImageLocator.save.steps.directory"))
+        Optional.ofNullable(System.getProperty("pl.grizwold.spotter.ImageLocator.save.steps.directory"))
                 .filter(p -> !p.isEmpty())
                 .ifPresent(p -> this.debug_saveStepsDirectory = p);
     }

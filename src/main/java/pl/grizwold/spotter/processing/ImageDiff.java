@@ -1,7 +1,7 @@
-package pl.grizwold.screenautomation.processing;
+package pl.grizwold.spotter.processing;
 
 import lombok.extern.slf4j.Slf4j;
-import pl.grizwold.screenautomation.model.Point;
+import pl.grizwold.spotter.model.Point;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
