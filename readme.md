@@ -46,7 +46,7 @@ All versions are listed on [jitpack](https://jitpack.io/#tomekbielaszewski/spott
 
 ```groovy
 	dependencies {
-	        implementation 'com.github.tomekbielaszewski:spotter:Tag'
+	        implementation 'com.github.tomekbielaszewski:spotter:master-SNAPSHOT'
 	}
 ```
 
