@@ -37,11 +37,28 @@ public class Screen {
     private BiConsumer<List<Icon>, Screen> defaultGroupTimeoutHandler = GROUP_DO_NOTHING;
     private int colorTolerance = 30;
 
-    @SneakyThrows
+    public Screen() {
+        this(GraphicsEnvironment.getLocalGraphicsEnvironment()
+                .getDefaultScreenDevice().getDefaultConfiguration().getBounds(),
+                GraphicsEnvironment.getLocalGraphicsEnvironment()
+                .getDefaultScreenDevice());
+    }
+
+    public Screen(GraphicsDevice graphicsDevice) {
+        this(graphicsDevice.getDefaultConfiguration().getBounds(), graphicsDevice);
+    }
+
     public Screen(Rectangle workingArea) {
+        this(workingArea, GraphicsEnvironment.getLocalGraphicsEnvironment()
+                .getDefaultScreenDevice());
+    }
+
+    @SneakyThrows
+    public Screen(Rectangle workingArea, GraphicsDevice graphicsDevice) {
+        log.debug("Working area set to: " + workingArea.toString());
         this.offset = new Point(workingArea.getLocation());
         this.workingArea = workingArea;
-        this.robot = new Robot();
+        this.robot = new Robot(graphicsDevice);
         this.imageComparator = new ImageComparator();
         refresh();
         withLoggingNotFound();

@@ -7,7 +7,7 @@ group = 'pl.grizwold'
 version = '0.0.1-SNAPSHOT'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_23
+    sourceCompatibility = JavaVersion.VERSION_21
 }
 
 configurations {

@@ -7,15 +7,16 @@ import pl.grizwold.spotter.model.Point;
 import javax.annotation.Nonnull;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class PixelByPixelImageLocator {
-    private static final int MASK = -65281; //pure magenta color
+    private static final int MASK = -65281; //pure magenta color - RGB(255, 0, 255)
 
     private final BufferedImage base;
 
@@ -162,6 +163,9 @@ public class PixelByPixelImageLocator {
 
     private void saveImageWithFoundAreas(List<Rectangle> rectangles, BufferedImage base, String iconFileName, long timestamp) {
         BufferedImage copy = ImageUtil.copy(base);
+        String date = DateTimeFormatter.ofPattern("HH_mm_ss_SSS").format(LocalDateTime.ofInstant(
+            Instant.ofEpochMilli(timestamp),
+            TimeZone.getDefault().toZoneId()));
 
         Graphics2D g = copy.createGraphics();
         g.setColor(Color.MAGENTA);
@@ -173,7 +177,7 @@ public class PixelByPixelImageLocator {
         String pathStr = debug_saveStepsDirectory;
         pathStr += pathStr.endsWith("/") ? "" : "/";
         String iconName = iconFileName.substring(0, iconFileName.length() - 4);
-        pathStr += timestamp + "/" + iconName + "_final.png";
+        pathStr += date + "_" + iconName + "/" + iconName + "_final.png";
         ImageUtil.save(copy, pathStr);
     }
 }
