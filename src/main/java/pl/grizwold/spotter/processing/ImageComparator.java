@@ -35,7 +35,7 @@ public class ImageComparator {
                 if (rgb1 == MASK || rgb2 == MASK) continue;
                 double diff = colorDifference(rgb1, rgb2);
 
-                if (diff > tolerance) return false;
+                if (diff > tolerance * tolerance) return false;
             }
         }
 
