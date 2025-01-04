@@ -54,6 +54,14 @@ public class ImageDiff {
         return rectangles;
     }
 
+    public ImageDiff setPixelToleranceLevel(double pixelToleranceLevel) {
+        if (0.0 <= pixelToleranceLevel && pixelToleranceLevel < 1) {
+            this.pixelToleranceLevel = pixelToleranceLevel;
+            differenceConstant = calculateDifferenceConstant();
+        }
+        return this;
+    }
+
     public ImageDiff debug(boolean debug) {
         this.debug = debug;
         return this;
