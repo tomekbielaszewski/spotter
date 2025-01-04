@@ -51,6 +51,10 @@ public class Point {
         return pointModifier.apply(this);
     }
 
+    public Point scale(Dimension dimension) {
+        return new Point(this.x * dimension.width, this.y * dimension.height);
+    }
+
     public Point minus(Point vector) {
         return translate(-vector.x, -vector.y);
     }
