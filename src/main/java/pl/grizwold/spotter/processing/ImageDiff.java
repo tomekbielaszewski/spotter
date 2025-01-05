@@ -3,9 +3,7 @@ package pl.grizwold.spotter.processing;
 import lombok.extern.slf4j.Slf4j;
 import pl.grizwold.spotter.model.Point;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,14 +16,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ImageDiff {
     private final BufferedImage original;
+    private final VisualDebug debug;
     private double pixelToleranceLevel = 0.0;
     private double differenceConstant;
     private int minimalRectangleSize = 10;
-    private boolean debug = false;
 
     public ImageDiff(BufferedImage original) {
         this.original = original;
-        differenceConstant = calculateDifferenceConstant();
+        this.differenceConstant = calculateDifferenceConstant();
+        this.debug = new VisualDebug();
     }
 
     public List<Rectangle> getDiffBounds(BufferedImage sample) {
@@ -40,14 +39,11 @@ public class ImageDiff {
         validateSameSize(originalSubImage, sample);
         int[][] diffMatrix = getDifferenceMatrix(original, sample);
         int regionCount = groupRegions(diffMatrix);
-        if (debug) {
-            saveRegionVisualization(diffMatrix, sample, start);
-        }
+        debug_saveRegionVisualization(diffMatrix, sample);
+
         List<Rectangle> rectangles = getRegionBoundaries(regionCount, diffMatrix);
         rectangles = filterOutSmallOnes(rectangles);
-        if (debug) {
-            saveBoundariesVisualization(rectangles, sample, start);
-        }
+        debug_saveBoundariesVisualization(rectangles, sample);
 
         log.debug("Detecting difference between images of size {}x{} took: {}ms", sample.getWidth(), sample.getHeight(), (System.currentTimeMillis() - start));
         log.debug("Difference detection found {} rectangles", rectangles.size());
@@ -59,11 +55,6 @@ public class ImageDiff {
             this.pixelToleranceLevel = pixelToleranceLevel;
             differenceConstant = calculateDifferenceConstant();
         }
-        return this;
-    }
-
-    public ImageDiff debug(boolean debug) {
-        this.debug = debug;
         return this;
     }
 
@@ -185,7 +176,17 @@ public class ImageDiff {
         return rectangle.width * rectangle.height > minimalRectangleSize;
     }
 
-    private void saveRegionVisualization(int[][] diffMatrix, BufferedImage sample, long timestamp) {
+    private void debug_saveRegionVisualization(int[][] diffMatrix, BufferedImage sample) {
+        String fileName = "image-diff-regions.png";
+        this.debug.saveDebugImage(() -> this.createImageWithRegions(diffMatrix, sample), fileName);
+    }
+
+    private void debug_saveBoundariesVisualization(List<Rectangle> rectangles, BufferedImage sample) {
+        String fileName = "image-diff-boundaries.png";
+        this.debug.saveDebugImage(() -> this.createImageWithBoundaries(sample, rectangles), fileName);
+    }
+
+    private BufferedImage createImageWithRegions(int[][] diffMatrix, BufferedImage sample) {
         BufferedImage copy = ImageUtil.copy(sample);
         List<Color> colors = Arrays.asList(
                 Color.MAGENTA,
@@ -198,17 +199,7 @@ public class ImageDiff {
                 Color.YELLOW,
                 Color.LIGHT_GRAY
         );
-        drawRegions(diffMatrix, copy, colors);
-        ImageUtil.save(copy, "image_diff_debug/" + timestamp + "/regions.png");
-    }
 
-    private void saveBoundariesVisualization(List<Rectangle> rectangles, BufferedImage sample, long timestamp) {
-        BufferedImage copy = ImageUtil.copy(sample);
-        drawBoundaries(copy, rectangles);
-        ImageUtil.save(copy, "image_diff_debug/" + timestamp + "/boundaries.png");
-    }
-
-    private void drawRegions(int[][] diffMatrix, BufferedImage copy, List<Color> colors) {
         Graphics2D g = copy.createGraphics();
         for (int x = 0; x < copy.getWidth(); x++) {
             for (int y = 0; y < copy.getHeight(); y++) {
@@ -223,14 +214,20 @@ public class ImageDiff {
             }
         }
         g.dispose();
+
+        return copy;
     }
 
-    private void drawBoundaries(BufferedImage copy, List<Rectangle> rectangles) {
+    private BufferedImage createImageWithBoundaries(BufferedImage sample, List<Rectangle> rectangles) {
+        BufferedImage copy = ImageUtil.copy(sample);
+
         Graphics2D g = copy.createGraphics();
         g.setColor(Color.MAGENTA);
         for (Rectangle r : rectangles) {
             g.drawRect(r.x, r.y, r.width, r.height);
         }
         g.dispose();
+
+        return copy;
     }
 }

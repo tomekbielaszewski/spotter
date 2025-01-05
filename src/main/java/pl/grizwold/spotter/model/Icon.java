@@ -1,5 +1,6 @@
 package pl.grizwold.spotter.model;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.imageio.ImageIO;
@@ -14,6 +15,7 @@ import static com.sun.jna.Platform.isWindows;
 @Slf4j
 public class Icon {
     private Path path;
+    @Getter
     private BufferedImage image;
 
     public Icon(Path path) {
@@ -27,10 +29,6 @@ public class Icon {
 
     public Icon(String path) {
         this(Paths.get(linuxFix(path)));
-    }
-
-    public BufferedImage getImage() {
-        return image;
     }
 
     public Point getCenter() {

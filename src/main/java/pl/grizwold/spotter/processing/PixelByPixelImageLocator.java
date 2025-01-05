@@ -7,26 +7,23 @@ import pl.grizwold.spotter.model.Point;
 import javax.annotation.Nonnull;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Slf4j
 public class PixelByPixelImageLocator {
-    private static final int MASK = -65281; //pure magenta color - RGB(255, 0, 255)
+    // pure magenta color - RGB(255, 0, 255)
+    private static final int MASK = -65281;
 
     private final BufferedImage base;
+    private final VisualDebug debug;
 
-    private boolean debug_saveSteps;
-    private String debug_saveStepsDirectory = "image_locator_debug";
     private int colorTolerance = 1;
 
     public PixelByPixelImageLocator(BufferedImage base) {
+        this.debug = new VisualDebug();
         this.base = base;
-        setupDebugFlags();
     }
 
     @Nonnull
@@ -52,7 +49,7 @@ public class PixelByPixelImageLocator {
         } else {
             log.debug("Locating icon \"{}\" took: {} ms", icon_.getFilename(), algoTime);
         }
-        saveResultVisualization(this.base, icon_, locations, start);
+        saveResultVisualization(this.base, icon_, locations);
         return locations;
     }
 
@@ -123,61 +120,30 @@ public class PixelByPixelImageLocator {
         return (argb[0] << 24) | (argb[1] << 16) | (argb[2] << 8) | argb[3];
     }
 
-    public PixelByPixelImageLocator activateDebugging() {
-        return this.activateDebugging(null);
+    private void saveResultVisualization(BufferedImage base, Icon icon, List<Point> locations) {
+        String suffix = locations.isEmpty() ? "_NOT_FOUND.png" : ".png";
+        String fileName = icon.getFilename().substring(0, icon.getFilename().length() - 4) // remove original ".png"
+                // do not create subdirectories if icon is loaded from deeper directory
+                .replaceAll("/", "-") // on linux
+                .replaceAll("\\\\", "-") // on windows
+                + suffix;
+        this.debug.saveDebugImage(this.provideImageWithFoundAreas(base, icon, locations), fileName);
     }
 
-    public PixelByPixelImageLocator activateDebugging(String directory) {
-        this.debug_saveSteps = true;
-        this.debug_saveStepsDirectory = Optional.ofNullable(directory).orElse("image_locator_debug");
-        return this;
-    }
+    private VisualDebug.DebugImageProvider provideImageWithFoundAreas(BufferedImage base, Icon icon, List<Point> locations) {
+        return () -> {
+            List<Rectangle> rectangles = locations.stream()
+                    .map(p -> new Rectangle(p.toAwt(), icon.getDimension()))
+                    .toList();
+            BufferedImage copy = ImageUtil.copy(base);
 
-    public PixelByPixelImageLocator deactivateDebugging() {
-        this.debug_saveSteps = false;
-        this.debug_saveStepsDirectory = null;
-        return this;
-    }
-
-    private void saveResultVisualization(BufferedImage base, Icon icon, List<Point> possibleFirstPixels, long timestamp) {
-        if (debug_saveSteps) {
-            if (!possibleFirstPixels.isEmpty()) {
-                List<Rectangle> rectangles = possibleFirstPixels.stream()
-                        .map(p -> new Rectangle(p.toAwt(), icon.getDimension()))
-                        .collect(Collectors.toList());
-                saveImageWithFoundAreas(rectangles, base, icon.getFilename(), timestamp);
-            } else {
-                saveImageWithFoundAreas(Collections.emptyList(), base, icon.getFilename() + "_NOT_FOUND", timestamp);
+            Graphics2D g = copy.createGraphics();
+            g.setColor(Color.MAGENTA);
+            for (Rectangle p : rectangles) {
+                g.drawRect(p.x, p.y, p.width, p.height);
             }
-        }
-    }
-
-    private void setupDebugFlags() {
-        Optional.ofNullable(System.getProperty("pl.grizwold.spotter.ImageLocator.save.steps.enabled"))
-                .filter("true"::equals)
-                .ifPresent(_ -> this.debug_saveSteps = true);
-        Optional.ofNullable(System.getProperty("pl.grizwold.spotter.ImageLocator.save.steps.directory"))
-                .filter(p -> !p.isEmpty())
-                .ifPresent(p -> this.debug_saveStepsDirectory = p);
-    }
-
-    private void saveImageWithFoundAreas(List<Rectangle> rectangles, BufferedImage base, String iconFileName, long timestamp) {
-        BufferedImage copy = ImageUtil.copy(base);
-        String date = DateTimeFormatter.ofPattern("HH_mm_ss_SSS").format(LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(timestamp),
-            TimeZone.getDefault().toZoneId()));
-
-        Graphics2D g = copy.createGraphics();
-        g.setColor(Color.MAGENTA);
-        for (Rectangle p : rectangles) {
-            g.drawRect(p.x, p.y, p.width, p.height);
-        }
-        g.dispose();
-
-        String pathStr = debug_saveStepsDirectory;
-        pathStr += pathStr.endsWith("/") ? "" : "/";
-        String iconName = iconFileName.substring(0, iconFileName.length() - 4);
-        pathStr += date + "_" + iconName + "/" + iconName + "_final.png";
-        ImageUtil.save(copy, pathStr);
+            g.dispose();
+            return copy;
+        };
     }
 }
