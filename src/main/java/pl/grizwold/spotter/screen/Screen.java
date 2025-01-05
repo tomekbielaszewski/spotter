@@ -369,16 +369,6 @@ public class Screen {
         return this;
     }
 
-    public Screen activateDebugging() {
-        this.imageLocator.activateDebugging();
-        return this;
-    }
-
-    public Screen deactivateDebugging() {
-        this.imageLocator.deactivateDebugging();
-        return this;
-    }
-
     public Screen setWaitingLogTimeout(long waitingLogTimeout) {
         this.waitingLogTimeout = waitingLogTimeout;
         return this;
