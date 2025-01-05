@@ -1,9 +1,14 @@
 package pl.grizwold.spotter.processing;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -48,13 +53,19 @@ public class VisualDebug {
         }
     }
 
+    @SneakyThrows
     public void clear() {
         if (this.enabled) {
-            File file = new File(directory);
-            if (file.exists()) {
-                boolean deleted = file.delete();
-                log.debug("Cleared up debug location: {}", deleted);
-            }
+            Path debugLocation = Paths.get(directory);
+            Files.walk(debugLocation)
+                    .forEach(p -> {
+                        try {
+                            Files.delete(p);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+            log.debug("Cleared up debug location: {}", debugLocation.toAbsolutePath());
         }
     }
 
