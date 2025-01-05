@@ -36,6 +36,7 @@ public class VisualDebug {
 
     public void saveDebugImage(DebugImageProvider imageProvider, String fileName) {
         if (this.enabled) {
+            log.debug("Saving debug image to {}", fileName);
             Instant instant = Instant.ofEpochMilli(System.currentTimeMillis());
             String minutes = DateTimeFormatter.ofPattern("HH-mm").format(LocalDateTime.ofInstant(
                     instant, TimeZone.getDefault().toZoneId()));
