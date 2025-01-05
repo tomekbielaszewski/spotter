@@ -15,16 +15,19 @@ public class VisualDebug {
     private static final String DEBUG_ENABLE_ENV_VAR = "SPOTTER_DEBUG_ENABLED";
     private static final String DEBUG_DIRECTORY_ENV_VAR = "SPOTTER_DEBUG_DIRECTORY";
 
+    private static final String DEFAULT_DIRECTORY = "visual-debug/";
+    private static final boolean DEFAULT_DEBUG = false;
+
     private final boolean enabled;
     private final String directory;
 
     public VisualDebug() {
         this.enabled = Optional.ofNullable(System.getenv(DEBUG_ENABLE_ENV_VAR))
                 .map(Boolean::parseBoolean)
-                .orElse(false);
-        String directory = System.getenv(DEBUG_DIRECTORY_ENV_VAR);
-        directory += directory.endsWith("/") ? "" : "/";
-        this.directory = directory;
+                .orElse(DEFAULT_DEBUG);
+        this.directory = Optional.ofNullable(System.getenv(DEBUG_DIRECTORY_ENV_VAR))
+                .map(directory -> directory + (directory.endsWith("/") ? "" : "/"))
+                .orElse(DEFAULT_DIRECTORY);
     }
 
     public void saveDebugImage(BufferedImage image, String fileName) {
