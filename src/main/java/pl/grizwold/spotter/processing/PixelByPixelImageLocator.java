@@ -121,12 +121,11 @@ public class PixelByPixelImageLocator {
     }
 
     private void saveResultVisualization(BufferedImage base, Icon icon, List<Point> locations) {
-        String suffix = locations.isEmpty() ? "_NOT_FOUND.png" : ".png";
         String fileName = icon.getFilename().substring(0, icon.getFilename().length() - 4) // remove original ".png"
                 // do not create subdirectories if icon is loaded from deeper directory
                 .replaceAll("/", "-") // on linux
                 .replaceAll("\\\\", "-") // on windows
-                + suffix;
+                + (locations.isEmpty() ? "_NOT_FOUND" : "");
         this.debug.saveDebugImage(this.provideImageWithFoundAreas(base, icon, locations), fileName);
     }
 

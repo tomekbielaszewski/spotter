@@ -1,19 +1,16 @@
 package pl.grizwold.spotter.processing;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import pl.grizwold.spotter.model.Icon;
 import pl.grizwold.spotter.model.Point;
 
 import javax.annotation.Nonnull;
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -21,16 +18,15 @@ public class ColorMapImageLocator {
     private static final int MASK = -65281; //pure magenta color
 
     private final BufferedImage base;
-
     private final Map<Integer, List<Point>> colorMap = new HashMap<>();
-    private boolean debug_saveSteps;
-    private String debug_saveStepsDirectory = "image_locator_debug";
+    private final VisualDebug debug;
+
     private int amountOfLastFoundPixels = -1;
 
     public ColorMapImageLocator(BufferedImage base) {
         this.base = base;
+        this.debug = new VisualDebug();
         buildColorMap();
-        setupDebugFlags();
     }
 
     private void buildColorMap() {
@@ -74,7 +70,7 @@ public class ColorMapImageLocator {
                             .collect(Collectors.toList());
                 }
 
-                saveStepVisualization(this.base, icon_, possibleFirstPixels, x + "_" + y, start);
+                saveStepVisualization(this.base, icon_, possibleFirstPixels, x + "x" + y);
 
                 if (possibleFirstPixels.isEmpty()) {
                     long time = System.currentTimeMillis() - start;
@@ -88,7 +84,7 @@ public class ColorMapImageLocator {
                 .map(p -> p.minus(firstSampledLocation[0]))
                 .collect(Collectors.toList());
 
-        saveResultVisualization(this.base, icon_, possibleFirstPixels, start);
+        saveResultVisualization(this.base, icon_, possibleFirstPixels);
 
         long algoTime = System.currentTimeMillis() - start;
         log.debug("Locating icon \"{}\" took: {} ms", icon_.getFilename(), algoTime);
@@ -98,48 +94,33 @@ public class ColorMapImageLocator {
         return possibleFirstPixels;
     }
 
-    public ColorMapImageLocator activateDebugging() {
-        return this.activateDebugging(null);
-    }
-
-    public ColorMapImageLocator activateDebugging(String directory) {
-        this.debug_saveSteps = true;
-        this.debug_saveStepsDirectory = Optional.ofNullable(directory).orElse("image_locator_debug");
-        return this;
-    }
-
-    public ColorMapImageLocator deactivateDebugging() {
-        this.debug_saveSteps = false;
-        this.debug_saveStepsDirectory = null;
-        return this;
-    }
-
-    private void saveStepVisualization(BufferedImage baseImage, Icon sample, List<Point> pixelsToHighlight, String iteration, long timestamp) {
-        if (debug_saveSteps && pixelsToHighlight.size() != amountOfLastFoundPixels) {
-            saveImageWithFoundPixels(pixelsToHighlight, timestamp, iteration, baseImage, sample);
+    private void saveStepVisualization(BufferedImage baseImage, Icon icon, List<Point> pixelsToHighlight, String iteration) {
+        if (pixelsToHighlight.size() != amountOfLastFoundPixels) {
+            String fileName = icon.getFilename().substring(0, icon.getFilename().length() - 4) // remove original ".png"
+                    // do not create subdirectories if icon is loaded from deeper directory
+                    .replaceAll("/", "-") // on linux
+                    .replaceAll("\\\\", "-") // on windows
+                    + "-" + iteration;
+            this.debug.saveDebugImage(() -> provideImageWithFoundPixels(pixelsToHighlight, baseImage), fileName);
             amountOfLastFoundPixels = pixelsToHighlight.size();
         }
     }
 
-    private void saveResultVisualization(BufferedImage base, Icon icon, List<Point> possibleFirstPixels, long timestamp) {
-        if (debug_saveSteps && !possibleFirstPixels.isEmpty()) {
-            List<Rectangle> rectangles = possibleFirstPixels.stream()
-                    .map(p -> new Rectangle(p.toAwt(), icon.getDimension()))
-                    .collect(Collectors.toList());
-            saveImageWithFoundAreas(rectangles, base, icon.getFilename(), timestamp);
+    private void saveResultVisualization(BufferedImage base, Icon icon, List<Point> possibleFirstPixels) {
+        if (!possibleFirstPixels.isEmpty()) {
+            String fileName = icon.getFilename().substring(0, icon.getFilename().length() - 4) // remove original ".png"
+                    // do not create subdirectories if icon is loaded from deeper directory
+                    .replaceAll("/", "-") // on linux
+                    .replaceAll("\\\\", "-") // on windows
+                    + "-final";
+            this.debug.saveDebugImage(() -> provideImageWithFoundAreas(possibleFirstPixels, base, icon), fileName);
         }
     }
 
-    private void setupDebugFlags() {
-        Optional.ofNullable(System.getProperty("pl.grizwold.spotter.ImageLocator.save.steps.enabled"))
-                .filter("true"::equals)
-                .ifPresent(_ -> this.debug_saveSteps = true);
-        Optional.ofNullable(System.getProperty("pl.grizwold.spotter.ImageLocator.save.steps.directory"))
-                .filter(p -> !p.isEmpty())
-                .ifPresent(p -> this.debug_saveStepsDirectory = p);
-    }
-
-    private void saveImageWithFoundAreas(List<Rectangle> rectangles, BufferedImage base, String iconFileName, long timestamp) {
+    private BufferedImage provideImageWithFoundAreas(List<Point> possibleFirstPixels, BufferedImage base, Icon icon) {
+        List<Rectangle> rectangles = possibleFirstPixels.stream()
+                .map(p -> new Rectangle(p.toAwt(), icon.getDimension()))
+                .toList();
         BufferedImage copy = ImageUtil.copy(base);
 
         Graphics2D g = copy.createGraphics();
@@ -149,16 +130,12 @@ public class ColorMapImageLocator {
         }
         g.dispose();
 
-        String pathStr = debug_saveStepsDirectory;
-        pathStr += pathStr.endsWith("/") ? "" : "/";
-        String iconName = iconFileName.substring(0, iconFileName.length() - 4);
-        pathStr += timestamp + "/" + iconName + "_final.png";
-        ImageUtil.save(copy, pathStr);
+        return copy;
     }
 
-    @SneakyThrows
-    private void saveImageWithFoundPixels(@Nonnull List<Point> possibleFirstPixels, long timestamp, String iteration, BufferedImage baseImage, Icon sample) {
+    private BufferedImage provideImageWithFoundPixels(@Nonnull List<Point> possibleFirstPixels, BufferedImage baseImage) {
         BufferedImage copy = ImageUtil.copy(baseImage);
+
         Graphics2D g = copy.createGraphics();
         g.setColor(Color.MAGENTA);
         for (Point p : possibleFirstPixels) {
@@ -166,15 +143,6 @@ public class ColorMapImageLocator {
         }
         g.dispose();
 
-        String pathStr = "";
-        if (this.debug_saveStepsDirectory != null) {
-            pathStr = debug_saveStepsDirectory;
-            pathStr += pathStr.endsWith("/") ? "" : "/";
-        }
-        String iconName = sample.getFilename().substring(0, sample.getFilename().length() - 4);
-        pathStr += timestamp + "/" + iconName + "_" + iteration + ".png";
-        Files.createDirectories(Paths.get(pathStr));
-        File file = new File(pathStr);
-        ImageIO.write(copy, "png", file);
+        return copy;
     }
 }
