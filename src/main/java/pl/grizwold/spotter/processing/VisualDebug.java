@@ -27,6 +27,10 @@ public class VisualDebug {
         this.directory = directory;
     }
 
+    public void saveDebugImage(BufferedImage image, String fileName) {
+        this.saveDebugImage(() -> image, fileName);
+    }
+
     public void saveDebugImage(DebugImageProvider imageProvider, String fileName) {
         if (this.enabled) {
             Instant instant = Instant.ofEpochMilli(System.currentTimeMillis());
