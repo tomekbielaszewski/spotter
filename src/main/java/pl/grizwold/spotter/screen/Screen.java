@@ -101,6 +101,13 @@ public class Screen {
     }
 
     /**
+     * @see Locator#locateArea(Point, Rectangle)
+     */
+    public Optional<Rectangle> locateArea(Point point, Rectangle relativeArea) {
+        return locator().locateArea(point, relativeArea);
+    }
+
+    /**
      * @see Locator#locateArea(Icon, Rectangle)
      */
     public Optional<Rectangle> locateArea(Icon icon, Rectangle relativeArea) {

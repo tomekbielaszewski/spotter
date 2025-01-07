@@ -98,13 +98,25 @@ public class Locator {
         return this.imageComparator.areTheSame(image, screen);
     }
 
-    public Optional<Rectangle> locateArea(Icon icon, Rectangle relativeArea) {
-        log.debug("Locating area from {} with relative area {}", icon.getFilename(), relativeArea.toString());
-        return locate(icon)
+    /**
+     * Accepts a Point from the current working area and translates it to its relative rectangle.
+     */
+    public Optional<Rectangle> locateArea(Point from, Rectangle relativeArea) {
+        log.debug("Locating area from {} with relative area {}", from, relativeArea.toString());
+        return Optional.ofNullable(from)
                 .map(p -> new Point(relativeArea.getLocation())
                         .translate(p)
                         .translate(this::addOffset)
                         .toRectangle(relativeArea.getSize()));
+    }
+
+    /**
+     * @see Locator#locateArea(Point, Rectangle)
+     */
+    public Optional<Rectangle> locateArea(Icon icon, Rectangle relativeArea) {
+        log.debug("Locating area from {} with relative area {}", icon.getFilename(), relativeArea.toString());
+        return locate(icon)
+                .flatMap(p -> this.locateArea(p, relativeArea));
     }
 
     public List<Point> locateAll(Icon icon) {
