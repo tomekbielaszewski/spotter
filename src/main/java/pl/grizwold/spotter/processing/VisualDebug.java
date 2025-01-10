@@ -41,8 +41,8 @@ public class VisualDebug {
 
     public void saveDebugImage(DebugImageProvider imageProvider, String fileName) {
         if (this.enabled) {
-            log.debug("Saving debug image to {}", fileName);
-            Instant instant = Instant.ofEpochMilli(System.currentTimeMillis());
+            long start = System.currentTimeMillis();
+            Instant instant = Instant.ofEpochMilli(start);
             String minutes = DateTimeFormatter.ofPattern("HH-mm").format(LocalDateTime.ofInstant(
                     instant, TimeZone.getDefault().toZoneId()));
             String millis = DateTimeFormatter.ofPattern("ss-SSS-").format(LocalDateTime.ofInstant(
@@ -50,6 +50,7 @@ public class VisualDebug {
 
             String saveDir = directory + minutes + "/" + millis + fileName + ".png";
             ImageUtil.save(imageProvider.getImage(), saveDir);
+            log.debug("Saving debug image to \"{}\" took {}ms", fileName, (System.currentTimeMillis() - start));
         }
     }
 
