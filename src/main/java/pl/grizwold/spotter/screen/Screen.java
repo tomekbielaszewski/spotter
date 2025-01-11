@@ -19,7 +19,7 @@ import java.util.function.BiConsumer;
 @Slf4j
 public class Screen {
     private static final long DEFAULT_TIMEOUT = Integer.MAX_VALUE;
-    private static final long DEFAULT_ACTION_DELAY = 70;
+    private static final long DEFAULT_ACTION_DELAY = 50;
     private static final BiConsumer<Icon, Screen> DO_NOTHING = (_, _) -> {};
     private static final BiConsumer<List<Icon>, Screen> GROUP_DO_NOTHING = (_, _) -> {};
 
