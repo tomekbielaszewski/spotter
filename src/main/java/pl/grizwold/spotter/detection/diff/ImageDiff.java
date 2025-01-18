@@ -1,7 +1,8 @@
 package pl.grizwold.spotter.detection.diff;
 
 import lombok.extern.slf4j.Slf4j;
-import pl.grizwold.spotter.ImageUtil;
+import pl.grizwold.spotter.util.ImageUtil;
+import pl.grizwold.spotter.util.VisualDebug;
 import pl.grizwold.spotter.model.Point;
 
 import java.awt.*;
@@ -19,7 +20,7 @@ public class ImageDiff {
     private static final int DIFFERENCE_MARKER = 1;
 
     private final BufferedImage original;
-    private final ImageUtil.VisualDebug debug;
+    private final VisualDebug debug;
     private double pixelToleranceLevel = 0.0;
     private double differenceConstant;
     private int minimalRectangleSize = 10;
@@ -27,7 +28,7 @@ public class ImageDiff {
     public ImageDiff(BufferedImage original) {
         this.original = original;
         this.differenceConstant = calculateDifferenceConstant();
-        this.debug = new ImageUtil.VisualDebug();
+        this.debug = new VisualDebug();
     }
 
     public List<Rectangle> getDiffBounds(BufferedImage sample) {

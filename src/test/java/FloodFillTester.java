@@ -1,6 +1,6 @@
 import pl.grizwold.spotter.model.Icon;
 import pl.grizwold.spotter.detection.diff.FloodFill;
-import pl.grizwold.spotter.ImageUtil;
+import pl.grizwold.spotter.util.ImageUtil;
 import pl.grizwold.spotter.detection.diff.ScanlineStackBasedFloodFill;
 
 import java.awt.*;

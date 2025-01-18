@@ -1,7 +1,8 @@
 package pl.grizwold.spotter.detection.comparision;
 
 import lombok.extern.slf4j.Slf4j;
-import pl.grizwold.spotter.ImageUtil;
+import pl.grizwold.spotter.util.ImageUtil;
+import pl.grizwold.spotter.util.VisualDebug;
 import pl.grizwold.spotter.model.Icon;
 import pl.grizwold.spotter.model.Point;
 
@@ -18,12 +19,12 @@ public class PixelByPixelImageLocator implements ImageLocator {
     private static final int MASK = -65281;
 
     private final BufferedImage base;
-    private final ImageUtil.VisualDebug debug;
+    private final VisualDebug debug;
 
     private int colorTolerance = 1;
 
     public PixelByPixelImageLocator(BufferedImage base) {
-        this.debug = new ImageUtil.VisualDebug();
+        this.debug = new VisualDebug();
         this.base = base;
     }
 
@@ -130,7 +131,7 @@ public class PixelByPixelImageLocator implements ImageLocator {
         this.debug.saveDebugImage(this.provideImageWithFoundAreas(base, icon, locations), fileName);
     }
 
-    private ImageUtil.VisualDebug.DebugImageProvider provideImageWithFoundAreas(BufferedImage base, Icon icon, List<Point> locations) {
+    private VisualDebug.DebugImageProvider provideImageWithFoundAreas(BufferedImage base, Icon icon, List<Point> locations) {
         return () -> {
             List<Rectangle> rectangles = locations.stream()
                     .map(p -> new Rectangle(p.toAwt(), icon.getDimension()))

@@ -1,7 +1,8 @@
 package pl.grizwold.spotter.detection.comparision;
 
 import lombok.extern.slf4j.Slf4j;
-import pl.grizwold.spotter.ImageUtil;
+import pl.grizwold.spotter.util.ImageUtil;
+import pl.grizwold.spotter.util.VisualDebug;
 import pl.grizwold.spotter.model.Icon;
 import pl.grizwold.spotter.model.Point;
 
@@ -20,13 +21,13 @@ public class ColorMapImageLocator implements ImageLocator {
 
     private final BufferedImage base;
     private final Map<Integer, List<Point>> colorMap = new HashMap<>();
-    private final ImageUtil.VisualDebug debug;
+    private final VisualDebug debug;
 
     private int amountOfLastFoundPixels = -1;
 
     public ColorMapImageLocator(BufferedImage base) {
         this.base = base;
-        this.debug = new ImageUtil.VisualDebug();
+        this.debug = new VisualDebug();
         buildColorMap();
     }
 
