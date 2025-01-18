@@ -1,4 +1,4 @@
-package pl.grizwold.spotter.processing;
+package pl.grizwold.spotter.detection.comparision;
 
 import lombok.extern.slf4j.Slf4j;
 

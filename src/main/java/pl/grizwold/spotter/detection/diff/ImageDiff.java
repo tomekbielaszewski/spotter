@@ -1,6 +1,7 @@
-package pl.grizwold.spotter.processing;
+package pl.grizwold.spotter.detection.diff;
 
 import lombok.extern.slf4j.Slf4j;
+import pl.grizwold.spotter.ImageUtil;
 import pl.grizwold.spotter.model.Point;
 
 import java.awt.*;
@@ -15,8 +16,10 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class ImageDiff {
+    private static final int DIFFERENCE_MARKER = 1;
+
     private final BufferedImage original;
-    private final VisualDebug debug;
+    private final ImageUtil.VisualDebug debug;
     private double pixelToleranceLevel = 0.0;
     private double differenceConstant;
     private int minimalRectangleSize = 10;
@@ -24,7 +27,7 @@ public class ImageDiff {
     public ImageDiff(BufferedImage original) {
         this.original = original;
         this.differenceConstant = calculateDifferenceConstant();
-        this.debug = new VisualDebug();
+        this.debug = new ImageUtil.VisualDebug();
     }
 
     public List<Rectangle> getDiffBounds(BufferedImage sample) {
@@ -72,18 +75,19 @@ public class ImageDiff {
         int[][] matrix = new int[original.getHeight()][original.getWidth()];
         for (int y = 0; y < original.getHeight(); y++) {
             for (int x = 0; x < original.getWidth(); x++) {
-                matrix[y][x] = areColorsDifferent(original.getRGB(x, y), sample.getRGB(x, y)) ? 1 : 0;
+                matrix[y][x] = areColorsDifferent(original.getRGB(x, y), sample.getRGB(x, y)) ? DIFFERENCE_MARKER : 0;
             }
         }
         return matrix;
     }
 
     private int groupRegions(int[][] matrix) {
-        int regionId = 2; // 0 is same pixels on both, 1 is difference detected, regions start on 2
+        int regionId = DIFFERENCE_MARKER + 1; // 0 is same pixels on both, 1 is difference detected, regions start on 2
         for (int y = 0; y < matrix.length; y++) {
             for (int x = 0; x < matrix[y].length; x++) {
-                if (matrix[y][x] == 1) {
-                    joinToRegion(x, y, regionId, matrix);
+                if (matrix[y][x] == DIFFERENCE_MARKER) {
+                    new ScanlineStackBasedFloodFill()
+                            .fill(x, y, DIFFERENCE_MARKER, regionId, matrix);
                     regionId++;
                 }
             }
@@ -127,27 +131,6 @@ public class ImageDiff {
             }
         }
         return new Rectangle(xMin, yMin, (xMax - xMin), (yMax - yMin));
-    }
-
-    private void joinToRegion(int x, int y, int region, int[][] matrix) {
-        if (isJumpRejected(x, y, matrix)) {
-            return;
-        }
-
-        matrix[y][x] = region;
-
-        joinToRegion(x + 1, y, region, matrix);
-        joinToRegion(x, y + 1, region, matrix);
-        joinToRegion(x + 1, y - 1, region, matrix);
-        joinToRegion(x - 1, y + 1, region, matrix);
-        joinToRegion(x + 1, y + 1, region, matrix);
-        joinToRegion(x - 1, y - 1, region, matrix);
-        joinToRegion(x, y - 1, region, matrix);
-        joinToRegion(x - 1, y, region, matrix);
-    }
-
-    private boolean isJumpRejected(int x, int y, int[][] matrix) {
-        return y < 0 || y >= matrix.length || x < 0 || x >= matrix[y].length || matrix[y][x] != 1;
     }
 
     private boolean areColorsDifferent(int rgb1, int rgb2) {

@@ -5,8 +5,8 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import pl.grizwold.spotter.model.Icon;
 import pl.grizwold.spotter.model.Point;
-import pl.grizwold.spotter.processing.ImageComparator;
-import pl.grizwold.spotter.processing.PixelByPixelImageLocator;
+import pl.grizwold.spotter.detection.comparision.ImageComparator;
+import pl.grizwold.spotter.detection.comparision.PixelByPixelImageLocator;
 
 import java.awt.*;
 import java.awt.event.InputEvent;

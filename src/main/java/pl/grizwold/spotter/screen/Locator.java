@@ -1,10 +1,11 @@
 package pl.grizwold.spotter.screen;
 
 import lombok.extern.slf4j.Slf4j;
+import pl.grizwold.spotter.detection.comparision.ImageLocator;
 import pl.grizwold.spotter.model.Icon;
 import pl.grizwold.spotter.model.Point;
-import pl.grizwold.spotter.processing.ImageComparator;
-import pl.grizwold.spotter.processing.PixelByPixelImageLocator;
+import pl.grizwold.spotter.detection.comparision.ImageComparator;
+import pl.grizwold.spotter.detection.comparision.PixelByPixelImageLocator;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -15,10 +16,10 @@ import java.util.Optional;
 public class Locator {
     private final BufferedImage base;
     private final ImageComparator imageComparator;
-    private final PixelByPixelImageLocator imageLocator;
+    private final ImageLocator imageLocator;
     private final Point offset;
 
-    public Locator(BufferedImage base, ImageComparator imageComparator, PixelByPixelImageLocator imageLocator, Point offset) {
+    public Locator(BufferedImage base, ImageComparator imageComparator, ImageLocator imageLocator, Point offset) {
         this.base = base;
         this.imageComparator = imageComparator;
         this.imageLocator = imageLocator;
