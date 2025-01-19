@@ -27,26 +27,26 @@ public class ScanlineStackBasedFloodFill implements FloodFill {
             x = stack.pop();
 
             x1 = x;
-            while (x1 >= 0 && matrix[x1][y] == searchedColor) x1--;
+            while (x1 >= 0 && matrix[y][x1] == searchedColor) x1--;
             x1++;
             spanAbove = spanBelow = false;
 
-            while (valid(x1, y, matrix) && matrix[x1][y] == searchedColor) {
-                matrix[x1][y] = replacementColor;
+            while (valid(x1, y, matrix) && matrix[y][x1] == searchedColor) {
+                matrix[y][x1] = replacementColor;
 
-                if (!spanAbove && y > 0 && matrix[x1][y - 1] == searchedColor) {
+                if (!spanAbove && y > 0 && matrix[y - 1][x1] == searchedColor) {
                     stack.push(x1);
                     stack.push(y - 1);
                     spanAbove = true;
-                } else if (spanAbove && y > 0 && matrix[x1][y - 1] != searchedColor) {
+                } else if (spanAbove && y > 0 && matrix[y - 1][x1] != searchedColor) {
                     spanAbove = false;
                 }
 
-                if (!spanBelow && y < matrix[x1].length - 1 && matrix[x1][y + 1] == searchedColor) {
+                if (!spanBelow && y < matrix.length - 1 && matrix[y + 1][x1] == searchedColor) {
                     stack.push(x1);
                     stack.push(y + 1);
                     spanBelow = true;
-                } else if (spanBelow && y < matrix[x1].length - 1 && matrix[x1][y + 1] != searchedColor) {
+                } else if (spanBelow && y < matrix.length - 1 && matrix[y + 1][x1] != searchedColor) {
                     spanBelow = false;
                 }
 
@@ -56,6 +56,6 @@ public class ScanlineStackBasedFloodFill implements FloodFill {
     }
 
     private boolean valid(int x, int y, int[][] matrix) {
-        return x >= 0 && x < matrix.length && y >= 0 && y < matrix[x].length;
+        return y >= 0 && y < matrix.length && x >= 0 && x < matrix[y].length;
     }
 }
