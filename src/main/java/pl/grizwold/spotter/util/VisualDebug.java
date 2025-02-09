@@ -57,15 +57,18 @@ public class VisualDebug {
     public void clear() {
         if (this.enabled) {
             Path debugLocation = Paths.get(directory);
-            Files.walk(debugLocation)
-                    .forEach(p -> {
-                        try {
-                            Files.delete(p);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-            log.debug("Cleared up debug location: {}", debugLocation.toAbsolutePath());
+            boolean exists = Files.exists(debugLocation);
+            if (exists) {
+                Files.walk(debugLocation)
+                        .forEach(p -> {
+                            try {
+                                Files.delete(p);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                log.debug("Cleared up debug location: {}", debugLocation.toAbsolutePath());
+            }
         }
     }
 
