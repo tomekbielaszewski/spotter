@@ -63,6 +63,7 @@ public class VisualDebug {
                         .forEach(p -> {
                             try {
                                 Files.delete(p);
+                                log.debug("Deleted debug image at {}", p);
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
