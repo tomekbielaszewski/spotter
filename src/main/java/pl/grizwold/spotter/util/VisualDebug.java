@@ -2,10 +2,9 @@ package pl.grizwold.spotter.util;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -56,20 +55,9 @@ public class VisualDebug {
     @SneakyThrows
     public void clear() {
         if (this.enabled) {
-            Path debugLocation = Paths.get(directory);
-            boolean exists = Files.exists(debugLocation);
-            if (exists) {
-                Files.walk(debugLocation)
-                        .forEach(p -> {
-                            try {
-                                Files.delete(p);
-                                log.debug("Deleted debug image at {}", p);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
-                log.debug("Cleared up debug location: {}", debugLocation.toAbsolutePath());
-            }
+            Path debugDirectory = Paths.get(directory);
+            FileUtils.deleteDirectory(debugDirectory.toFile());
+            log.debug("Cleared up debug location: {}", debugDirectory.toAbsolutePath());
         }
     }
 
