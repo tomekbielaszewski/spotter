@@ -1,11 +1,11 @@
-package pl.grizwold.spotter.screen;
+package pl.grizwold.spotter.detection;
 
 import lombok.extern.slf4j.Slf4j;
+import pl.grizwold.spotter.Spotter;
 import pl.grizwold.spotter.detection.comparision.ImageLocator;
 import pl.grizwold.spotter.model.Icon;
 import pl.grizwold.spotter.model.Point;
 import pl.grizwold.spotter.detection.comparision.ImageComparator;
-import pl.grizwold.spotter.detection.comparision.PixelByPixelImageLocator;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -29,8 +29,8 @@ public class Locator {
     /**
      * Locates given image icon on {@link Locator}.base image. When several icons are found on {@link Locator}.base - one of them is returned.
      * The order may be random. Returned {@link Point} is location of left upper pixel of given icon. Returned {@link Point}
-     * cooridnates are related to {@link Screen}.workingArea of enclosin {@link Screen} object (thus - subrectangle of
-     * physical screen). In order to translate it to location on physical screen - translate it by {@link Screen}.offset
+     * cooridnates are related to {@link Spotter}.workingArea of enclosin {@link Spotter} object (thus - subrectangle of
+     * physical screen). In order to translate it to location on physical screen - translate it by {@link Spotter}.offset
      *
      * @param icon small image which will be searched on the screen
      * @return location of upper left pixel of given icon
@@ -45,8 +45,8 @@ public class Locator {
     /**
      * Locates given image icon on screen. When several icons are found on screen - one of them is returned.
      * The order may be random. Returned {@link Point} is location of center pixel of given icon. Returned {@link Point}
-     * cooridnates are related to {@link Screen}.workingArea of enclosin {@link Screen} object (thus - subrectangle of
-     * physical screen). In order to translate it to location on physical screen - translate it by {@link Screen}.offset
+     * cooridnates are related to {@link Spotter}.workingArea of enclosin {@link Spotter} object (thus - subrectangle of
+     * physical screen). In order to translate it to location on physical screen - translate it by {@link Spotter}.offset
      * <br/><br/>
      * This method is similar to: {@link #locate(Icon)}
      *

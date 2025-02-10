@@ -1,4 +1,4 @@
-package pl.grizwold.spotter.screen;
+package pl.grizwold.spotter;
 
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -7,6 +7,7 @@ import pl.grizwold.spotter.model.Icon;
 import pl.grizwold.spotter.model.Point;
 import pl.grizwold.spotter.detection.comparision.ImageComparator;
 import pl.grizwold.spotter.detection.comparision.PixelByPixelImageLocator;
+import pl.grizwold.spotter.detection.Locator;
 
 import java.awt.*;
 import java.awt.event.InputEvent;
@@ -17,11 +18,11 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 
 @Slf4j
-public class Screen {
+public class Spotter {
     private static final long DEFAULT_TIMEOUT = Integer.MAX_VALUE;
     private static final long DEFAULT_ACTION_DELAY = 50;
-    private static final BiConsumer<Icon, Screen> DO_NOTHING = (_, _) -> {};
-    private static final BiConsumer<List<Icon>, Screen> GROUP_DO_NOTHING = (_, _) -> {};
+    private static final BiConsumer<Icon, Spotter> DO_NOTHING = (_, _) -> {};
+    private static final BiConsumer<List<Icon>, Spotter> GROUP_DO_NOTHING = (_, _) -> {};
 
     private final Robot robot;
     private final Point offset;
@@ -32,29 +33,30 @@ public class Screen {
     private PixelByPixelImageLocator imageLocator;
     private ImageComparator imageComparator;
     private long waitingLogTimeout = 10000;
-    private BiConsumer<Icon, Screen> defaultTimeoutHandler = DO_NOTHING;
-    private BiConsumer<Icon, Screen> defaultIconNotFoundHandler = DO_NOTHING;
-    private BiConsumer<List<Icon>, Screen> defaultGroupTimeoutHandler = GROUP_DO_NOTHING;
+    private BiConsumer<Icon, Spotter> defaultTimeoutHandler = DO_NOTHING;
+    private BiConsumer<Icon, Spotter> defaultIconNotFoundHandler = DO_NOTHING;
+    private BiConsumer<List<Icon>, Spotter> defaultGroupTimeoutHandler = GROUP_DO_NOTHING;
     private int colorTolerance = 30;
+    private long actionDelay = DEFAULT_ACTION_DELAY;
 
-    public Screen() {
+    public Spotter() {
         this(GraphicsEnvironment.getLocalGraphicsEnvironment()
                 .getDefaultScreenDevice().getDefaultConfiguration().getBounds(),
                 GraphicsEnvironment.getLocalGraphicsEnvironment()
                 .getDefaultScreenDevice());
     }
 
-    public Screen(GraphicsDevice graphicsDevice) {
+    public Spotter(GraphicsDevice graphicsDevice) {
         this(graphicsDevice.getDefaultConfiguration().getBounds(), graphicsDevice);
     }
 
-    public Screen(Rectangle workingArea) {
+    public Spotter(Rectangle workingArea) {
         this(workingArea, GraphicsEnvironment.getLocalGraphicsEnvironment()
                 .getDefaultScreenDevice());
     }
 
     @SneakyThrows
-    public Screen(Rectangle workingArea, GraphicsDevice graphicsDevice) {
+    public Spotter(Rectangle workingArea, GraphicsDevice graphicsDevice) {
         log.debug("Working area set to: " + workingArea.toString());
         this.offset = new Point(workingArea.getLocation());
         this.workingArea = workingArea;
@@ -128,7 +130,7 @@ public class Screen {
         return locator().isVisible(icon);
     }
 
-    public Screen refresh() {
+    public Spotter refresh() {
         log.debug("Refreshing screenshot");
         this.screenCapture = robot.createScreenCapture(workingArea);
         this.imageLocator = new PixelByPixelImageLocator(screenCapture).withTolerance(colorTolerance);
@@ -138,25 +140,25 @@ public class Screen {
     /**
      * @param key use {@link KeyEvent} constants
      */
-    public Screen press(int key) {
+    public Spotter press(int key) {
         robot.keyPress(key);
         halt(100);
         robot.keyRelease(key);
         return this;
     }
 
-    public Screen move(Point to) {
+    public Spotter move(Point to) {
         to = addOffset(to);
         robot.mouseMove(to.x, to.y);
         return this;
     }
 
-    public Screen drag(Icon from, Icon to) {
+    public Spotter drag(Icon from, Icon to) {
         log.debug("Dragging from {} to {}", from.getFilename(), to.getFilename());
         return drag(from, to, defaultIconNotFoundHandler, defaultIconNotFoundHandler);
     }
 
-    public Screen drag(Icon from, Icon to, BiConsumer<Icon, Screen> onNotFoundFrom, BiConsumer<Icon, Screen> onNotFoundTo) {
+    public Spotter drag(Icon from, Icon to, BiConsumer<Icon, Spotter> onNotFoundFrom, BiConsumer<Icon, Spotter> onNotFoundTo) {
         log.debug("Dragging from {} to {}", from.getFilename(), to.getFilename());
         locateMiddle(to)
                 .ifPresentOrElse(
@@ -166,11 +168,11 @@ public class Screen {
         return this;
     }
 
-    public Screen drag(Icon from, Point toPoint) {
+    public Spotter drag(Icon from, Point toPoint) {
         return drag(from, toPoint, defaultIconNotFoundHandler);
     }
 
-    public Screen drag(Icon from, Point toPoint, BiConsumer<Icon, Screen> onNotFoundFrom) {
+    public Spotter drag(Icon from, Point toPoint, BiConsumer<Icon, Spotter> onNotFoundFrom) {
         log.debug("Dragging from {} to {}:{}", from.getFilename(), toPoint.x, toPoint.y);
         locateMiddle(from)
                 .ifPresentOrElse(
@@ -180,11 +182,11 @@ public class Screen {
         return this;
     }
 
-    public Screen drag(Point fromPoint, Icon to) {
+    public Spotter drag(Point fromPoint, Icon to) {
         return drag(fromPoint, to, defaultIconNotFoundHandler);
     }
 
-    public Screen drag(Point fromPoint, Icon to, BiConsumer<Icon, Screen> onNotFoundTo) {
+    public Spotter drag(Point fromPoint, Icon to, BiConsumer<Icon, Spotter> onNotFoundTo) {
         log.debug("Dragging from {}:{} to {}", fromPoint.x, fromPoint.y, to.getFilename());
         locateMiddle(to)
                 .ifPresentOrElse(
@@ -194,7 +196,7 @@ public class Screen {
         return this;
     }
 
-    public Screen drag(Point from, Point to) {
+    public Spotter drag(Point from, Point to) {
         log.debug("Dragging from {}:{} to {}:{}", from.x, from.y, to.x, to.y);
         from = addOffset(from);
         to = addOffset(to);
@@ -209,11 +211,11 @@ public class Screen {
         return this;
     }
 
-    public Screen doubleClick(Icon icon) {
+    public Spotter doubleClick(Icon icon) {
         return doubleClick(icon, defaultIconNotFoundHandler);
     }
 
-    public Screen doubleClick(Icon icon, BiConsumer<Icon, Screen> onNotFound) {
+    public Spotter doubleClick(Icon icon, BiConsumer<Icon, Spotter> onNotFound) {
         locateMiddle(icon)
                 .ifPresentOrElse(
                         this::doubleClick,
@@ -222,11 +224,11 @@ public class Screen {
         return this;
     }
 
-    public Screen doubleClick(Point point) {
-        return doubleClick(point, DEFAULT_ACTION_DELAY);
+    public Spotter doubleClick(Point point) {
+        return doubleClick(point, actionDelay);
     }
 
-    public Screen doubleClick(Point point, long delay) {
+    public Spotter doubleClick(Point point, long delay) {
         log.debug("Double clicking {}:{} with delay {}", point.x, point.y, delay);
         this.click(point);
         halt(delay);
@@ -234,11 +236,11 @@ public class Screen {
         return this;
     }
 
-    public Screen click(Icon icon) {
+    public Spotter click(Icon icon) {
         return click(icon, defaultIconNotFoundHandler);
     }
 
-    public Screen click(Icon icon, BiConsumer<Icon, Screen> onNotFound) {
+    public Spotter click(Icon icon, BiConsumer<Icon, Spotter> onNotFound) {
         log.debug("Clicking {}", icon.getFilename());
         locateMiddle(icon)
                 .ifPresentOrElse(
@@ -248,7 +250,7 @@ public class Screen {
         return this;
     }
 
-    public Screen click(Point point) {
+    public Spotter click(Point point) {
         log.debug("Clicking {}:{}", point.x, point.y);
         point = addOffset(point);
 
@@ -260,11 +262,11 @@ public class Screen {
         return this;
     }
 
-    public Screen rightClick(Icon icon) {
+    public Spotter rightClick(Icon icon) {
         return rightClick(icon, defaultIconNotFoundHandler);
     }
 
-    public Screen rightClick(Icon icon, BiConsumer<Icon, Screen> onNotFound) {
+    public Spotter rightClick(Icon icon, BiConsumer<Icon, Spotter> onNotFound) {
         log.debug("Right clicking {}", icon.getFilename());
         locateMiddle(icon)
                 .ifPresentOrElse(
@@ -274,7 +276,7 @@ public class Screen {
         return this;
     }
 
-    public Screen rightClick(Point point) {
+    public Spotter rightClick(Point point) {
         log.debug("Clicking {}:{}", point.x, point.y);
         point = addOffset(point);
 
@@ -286,39 +288,39 @@ public class Screen {
         return this;
     }
 
-    public Screen holdRMB() {
+    public Spotter holdRMB() {
         robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
         return this;
     }
 
-    public Screen releaseRMB() {
+    public Spotter releaseRMB() {
         robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
         return this;
     }
 
-    public Screen holdLMB() {
+    public Spotter holdLMB() {
         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         return this;
     }
 
-    public Screen releaseLMB() {
+    public Spotter releaseLMB() {
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
         return this;
     }
 
-    public Screen waitFor(Icon icon) {
+    public Spotter waitFor(Icon icon) {
         return waitFor(icon, DEFAULT_TIMEOUT);
     }
 
-    public Screen waitFor(Icon icon, long timeout) {
+    public Spotter waitFor(Icon icon, long timeout) {
         return waitFor(icon, timeout, defaultTimeoutHandler);
     }
 
-    public Screen waitFor(Icon icon, BiConsumer<Icon, Screen> onTimeout) {
+    public Spotter waitFor(Icon icon, BiConsumer<Icon, Spotter> onTimeout) {
         return waitFor(icon, DEFAULT_TIMEOUT, onTimeout);
     }
 
-    public Screen waitFor(Icon icon, long timeout, BiConsumer<Icon, Screen> onTimeout) {
+    public Spotter waitFor(Icon icon, long timeout, BiConsumer<Icon, Spotter> onTimeout) {
         log.debug("Waiting {}ms for {}", timeout, icon.getFilename());
         long start = System.currentTimeMillis();
         boolean longWaitLogged = false;
@@ -345,7 +347,7 @@ public class Screen {
         return waitFor(icons, timeout, defaultGroupTimeoutHandler);
     }
 
-    public Optional<Icon> waitFor(List<Icon> icons, long timeout, BiConsumer<List<Icon>, Screen> onTimeout) {
+    public Optional<Icon> waitFor(List<Icon> icons, long timeout, BiConsumer<List<Icon>, Spotter> onTimeout) {
         log.debug("Waiting {}ms for {} icons", timeout, icons.size());
         long start = System.currentTimeMillis();
         boolean longWaitLogged = false;
@@ -366,56 +368,66 @@ public class Screen {
         return Optional.empty();
     }
 
-    public Screen halt() {
-        return halt(DEFAULT_ACTION_DELAY);
+    public Spotter halt() {
+        return halt(actionDelay);
     }
 
     @SneakyThrows
-    public Screen halt(long delay) {
+    public Spotter halt(long delay) {
         Thread.sleep(delay);
         return this;
     }
 
-    public Screen setWaitingLogTimeout(long waitingLogTimeout) {
+    public Spotter setWaitingLogTimeout(long waitingLogTimeout) {
         this.waitingLogTimeout = waitingLogTimeout;
         return this;
     }
 
-    public Screen withIgnoringTimeouts() {
+    public Spotter withIgnoringTimeouts() {
         return doOnTimeout(DO_NOTHING);
     }
 
-    public Screen withIgnoringNotFound() {
+    public Spotter withIgnoringNotFound() {
         return doOnIconNotFound(DO_NOTHING);
     }
 
-    public Screen withLoggingTimeouts() {
+    public Spotter withLoggingTimeouts() {
         return doOnTimeout((i, _) -> log.warn("Waiting for {} timed out!", i.getFilename()));
     }
 
-    public Screen withLoggingNotFound() {
+    public Spotter withLoggingNotFound() {
         return doOnIconNotFound((i, _) -> log.warn("Icon {} not found", i.getFilename()));
     }
 
-    public Screen doOnTimeout(BiConsumer<Icon, Screen> defaultTimeoutHandler) {
+    public Spotter doOnTimeout(BiConsumer<Icon, Spotter> defaultTimeoutHandler) {
         this.defaultTimeoutHandler = defaultTimeoutHandler;
         return this;
     }
 
-    public Screen doOnIconNotFound(BiConsumer<Icon, Screen> defaultIconNotFoundHandler) {
+    public Spotter doOnIconNotFound(BiConsumer<Icon, Spotter> defaultIconNotFoundHandler) {
         this.defaultIconNotFoundHandler = defaultIconNotFoundHandler;
         return this;
     }
 
-    public Screen doOnGroupTimeout(BiConsumer<List<Icon>, Screen> defaultTimeoutHandler) {
+    public Spotter doOnGroupTimeout(BiConsumer<List<Icon>, Spotter> defaultTimeoutHandler) {
         this.defaultGroupTimeoutHandler = defaultTimeoutHandler;
         return this;
     }
 
-    public Screen withColorTolerance(int range) {
+    public Spotter withColorTolerance(int range) {
         this.colorTolerance = range;
         this.imageLocator.withTolerance(range);
         this.imageComparator = new ImageComparator(range);
+        return this;
+    }
+
+    public Spotter withActionDelay(long delay) {
+        this.actionDelay = delay;
+        return this;
+    }
+
+    public Spotter withDefaultActionDelay() {
+        this.withActionDelay(DEFAULT_ACTION_DELAY);
         return this;
     }
 
