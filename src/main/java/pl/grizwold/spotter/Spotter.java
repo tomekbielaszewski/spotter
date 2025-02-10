@@ -3,11 +3,11 @@ package pl.grizwold.spotter;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import pl.grizwold.spotter.model.Icon;
-import pl.grizwold.spotter.model.Point;
+import pl.grizwold.spotter.detection.Locator;
 import pl.grizwold.spotter.detection.comparision.ImageComparator;
 import pl.grizwold.spotter.detection.comparision.PixelByPixelImageLocator;
-import pl.grizwold.spotter.detection.Locator;
+import pl.grizwold.spotter.model.Icon;
+import pl.grizwold.spotter.model.Point;
 
 import java.awt.*;
 import java.awt.event.InputEvent;
@@ -21,8 +21,10 @@ import java.util.function.BiConsumer;
 public class Spotter {
     private static final long DEFAULT_TIMEOUT = Integer.MAX_VALUE;
     private static final long DEFAULT_ACTION_DELAY = 50;
-    private static final BiConsumer<Icon, Spotter> DO_NOTHING = (_, _) -> {};
-    private static final BiConsumer<List<Icon>, Spotter> GROUP_DO_NOTHING = (_, _) -> {};
+    private static final BiConsumer<Icon, Spotter> DO_NOTHING = (_, _) -> {
+    };
+    private static final BiConsumer<List<Icon>, Spotter> GROUP_DO_NOTHING = (_, _) -> {
+    };
 
     private final Robot robot;
     private final Point offset;
@@ -41,9 +43,9 @@ public class Spotter {
 
     public Spotter() {
         this(GraphicsEnvironment.getLocalGraphicsEnvironment()
-                .getDefaultScreenDevice().getDefaultConfiguration().getBounds(),
+                        .getDefaultScreenDevice().getDefaultConfiguration().getBounds(),
                 GraphicsEnvironment.getLocalGraphicsEnvironment()
-                .getDefaultScreenDevice());
+                        .getDefaultScreenDevice());
     }
 
     public Spotter(GraphicsDevice graphicsDevice) {
@@ -141,8 +143,23 @@ public class Spotter {
      * @param key use {@link KeyEvent} constants
      */
     public Spotter press(int key) {
+        return pressAndHold(key)
+                .halt(100)
+                .releaseKey(key);
+    }
+
+    /**
+     * @param key use {@link KeyEvent} constants
+     */
+    public Spotter pressAndHold(int key) {
         robot.keyPress(key);
-        halt(100);
+        return this;
+    }
+
+    /**
+     * @param key use {@link KeyEvent} constants
+     */
+    public Spotter releaseKey(int key) {
         robot.keyRelease(key);
         return this;
     }
