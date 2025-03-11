@@ -91,7 +91,7 @@ public class PatternMatcher implements Spliterator<Point> {
 
     private boolean patternFitsInImage() {
         boolean patternFitsTheImage = image.getWidth() >= pattern.getImage().getWidth() && image.getHeight() >= pattern.getImage().getHeight();
-        boolean thereAreStillChecksToBeDone = offset <= lastPossibleMatchingPoint();
+        boolean thereAreStillChecksToBeDone = offset <= size;
         return patternFitsTheImage && thereAreStillChecksToBeDone;
     }
 

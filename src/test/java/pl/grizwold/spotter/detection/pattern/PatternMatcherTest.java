@@ -55,6 +55,20 @@ class PatternMatcherTest {
     }
 
     @Test
+    void should_match_everything_with_an_empty_pattern_when_parallel() {
+        Stream<Point> stream = PatternMatcher.stream(base, new Icon("src/test/resources/pattern_matching/empty_pattern_10x10.png")).parallel();
+        List<Point> list = stream.toList();
+
+        int imageWidth = 175;
+        int imageHeight = 31;
+        var patternWidth = 10;
+        var patternHeight = 10;
+
+        assertFalse(list.isEmpty());
+        assertEquals((imageWidth - patternWidth + 1) * (imageHeight - patternHeight + 1), list.size());
+    }
+
+    @Test
     void should_not_match_eight_in_place_of_three() {
         Stream<Point> stream = PatternMatcher.stream(base, new Icon("src/test/resources/pattern_matching/pattern_letter_eight.png"));
         List<Point> list = stream.toList();
