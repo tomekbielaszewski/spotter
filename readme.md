@@ -52,10 +52,10 @@ All versions are listed on [jitpack](https://jitpack.io/#tomekbielaszewski/spott
 
 ## Image locator - debug image finding
 
-Two system properties are used for image finding debugging 
+Two environment variables are used for image finding debugging:
 
-`pl.grizwold.spotter.ImageLocator.save.steps.enabled`  
-`pl.grizwold.spotter.ImageLocator.save.steps.directory` - relative directory path to store step-by-step images as the ImageLocator searches the `Icon` on `Screen`
+`SPOTTER_DEBUG_ENABLED=false`  
+`SPOTTER_DEBUG_DIRECTORY=visual-debug/` - relative directory path to store step-by-step images as the ImageLocator searches the `Icon` on the screenshot made by `Spotter`
 
 ## New development release
 
