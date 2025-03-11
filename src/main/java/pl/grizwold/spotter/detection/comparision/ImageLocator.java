@@ -7,5 +7,5 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public interface ImageLocator {
-    public List<Point> locate(@Nonnull final Icon icon);
+    List<Point> locate(@Nonnull final Icon icon);
 }
