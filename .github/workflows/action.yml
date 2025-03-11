@@ -18,5 +18,8 @@ jobs:
           distribution: 'corretto' # You can use other distributions like 'adopt'
           java-version: '23'
 
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
       - name: Run tests
         run: ./gradlew test
