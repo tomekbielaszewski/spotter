@@ -36,9 +36,8 @@ dependencies {
 
 publishing {
     publications {
-        spotter(MavenPublication) {
+        myLibrary(MavenPublication) {
             from components.java
-            from components.sources
         }
     }
 }
