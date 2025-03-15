@@ -54,4 +54,9 @@ public class Icon {
         }
         return path;
     }
+
+    @Override
+    public String toString() {
+        return String.format("Icon{%dx%d [%s]}", image.getWidth(), image.getHeight(), path.getFileName().toString());
+    }
 }
