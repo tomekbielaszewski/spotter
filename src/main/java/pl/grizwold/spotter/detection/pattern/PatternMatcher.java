@@ -1,17 +1,23 @@
 package pl.grizwold.spotter.detection.pattern;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import lombok.extern.slf4j.Slf4j;
 import pl.grizwold.spotter.model.Icon;
 import pl.grizwold.spotter.model.Point;
 
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 @Slf4j
 public class PatternMatcher implements Spliterator<Point> {
+    private static final org.slf4j.Logger perfLog = org.slf4j.LoggerFactory.getLogger(PatternMatcher.class.getName() + ".performance");
     // pure magenta color - RGB(255, 0, 255)
     private static final int MASK = -65281;
 
@@ -47,42 +53,49 @@ public class PatternMatcher implements Spliterator<Point> {
 
             if (found) {
                 action.accept(toPoint(thisOffset));
-                log.debug("Pattern {} found in {}ms", pattern, System.currentTimeMillis() - start);
+                perfLog.debug("Pattern {} found in {}ms", pattern, System.currentTimeMillis() - start);
                 return true;
             }
         }
-        log.debug("Pattern {} NOT found after {}ms", pattern, System.currentTimeMillis() - start);
+        perfLog.debug("Pattern {} NOT found after {}ms", pattern, System.currentTimeMillis() - start);
         return false;
     }
 
     private boolean testPattern() {
         BufferedImage subimage = image.getSubimage(x(), y(), pattern.getImage().getWidth(), pattern.getImage().getHeight());
-        HashMap<Integer, Integer> patternToImageColorMap = new HashMap<>();
+        BiMap<Integer, Integer> colorMap = HashBiMap.create();
         Set<Integer> ignoredColors = new HashSet<>();
-        Set<Integer> matchedColors = new HashSet<>();
 
         for (int x = 0; x < pattern.getImage().getWidth(); x++) {
             for (int y = 0; y < pattern.getImage().getHeight(); y++) {
                 int patternPixel = pattern.getImage().getRGB(x, y);
                 int imagePixel = subimage.getRGB(x, y);
+
                 if (patternPixel == MASK) {
-                    if (matchedColors.contains(imagePixel)) {
+                    if (colorMap.containsValue(imagePixel)) {
                         log.trace("Image did not match the pattern. Previously matched color {} was found under the MASK at {}", imagePixel, toPoint(offset).translate(x, y));
                         return false;
                     }
                     ignoredColors.add(imagePixel);
                     continue;
                 }
+
                 if (ignoredColors.contains(imagePixel)) {
                     log.trace("Image did not match the pattern. Already ignored color {} appeared on non-ignored area at {}", imagePixel, toPoint(offset).translate(x, y));
                     return false;
                 }
-                Integer previousImagePixel = patternToImageColorMap.putIfAbsent(patternPixel, imagePixel);
-                if (previousImagePixel != null && previousImagePixel != imagePixel) {
-                    log.trace("Image did not match the pattern. Previously matched color {} was not matched again, the color {} appeared at {}", previousImagePixel, imagePixel, toPoint(offset).translate(x, y));
+
+                if (colorMap.containsKey(patternPixel) && colorMap.get(patternPixel) != imagePixel) {
+                    log.trace("Image did not match the pattern. Previously matched color from pattern {} was not matched again, the color {} appeared at {}", patternPixel, colorMap.get(patternPixel), toPoint(offset).translate(x, y));
                     return false;
                 }
-                matchedColors.add(imagePixel);
+
+                if (colorMap.containsValue(imagePixel) && colorMap.inverse().get(imagePixel) != patternPixel) {
+                    log.trace("Image did not match the pattern. Previously matched color from the image {} was not matched again, the color {} appeared at {}", imagePixel, colorMap.inverse().get(imagePixel), toPoint(offset).translate(x, y));
+                    return false;
+                }
+
+                colorMap.put(patternPixel, imagePixel);
             }
         }
 

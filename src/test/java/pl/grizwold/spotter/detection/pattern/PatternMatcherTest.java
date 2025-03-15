@@ -7,7 +7,9 @@ import pl.grizwold.spotter.util.ImageUtil;
 
 import java.awt.image.BufferedImage;
 import java.util.List;
+import java.util.Spliterator;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -96,5 +98,57 @@ class PatternMatcherTest {
         assertEquals(new Point(137, 10), list.getFirst());
     }
 
+    @Test
+    void should_find_two_hits() {
+        BufferedImage twoIrons = ImageUtil.read("src/test/resources/pattern_matching/two_irons.png");
+        Icon iron = new Icon("src/test/resources/pattern_matching/iron.png");
+        Stream<Point> stream = PatternMatcher.stream(twoIrons, iron);
 
+        List<Point> list = stream.toList();
+
+        assertEquals(2, list.size());
+        assertEquals(new Point(120,84), list.getFirst());
+        assertEquals(new Point(201,230), list.getLast());
+    }
+
+    @Test
+    void should_find_two_hits_when_pattern_has_altered_hue() {
+        BufferedImage twoIrons = ImageUtil.read("src/test/resources/pattern_matching/two_irons.png");
+        Icon iron = new Icon("src/test/resources/pattern_matching/iron_altered_hue.png");
+        Stream<Point> stream = PatternMatcher.stream(twoIrons, iron);
+
+        List<Point> list = stream.toList();
+
+        assertEquals(2, list.size());
+        assertEquals(new Point(120,84), list.getFirst());
+        assertEquals(new Point(201,230), list.getLast());
+    }
+
+    @Test
+    void should_not_match_second_half_when_split_and_first_half_used() {
+        BufferedImage twoIrons = ImageUtil.read("src/test/resources/pattern_matching/two_irons.png");
+        Icon iron = new Icon("src/test/resources/pattern_matching/iron.png");
+        PatternMatcher matcher = new PatternMatcher(twoIrons, iron);
+        Spliterator<Point> prefixSplit = matcher.trySplit();
+
+        List<Point> listFromPrefixSpliterator = StreamSupport.stream(prefixSplit, false)
+                .toList();
+
+        assertEquals(1, listFromPrefixSpliterator.size());
+        assertEquals(new Point(120,84), listFromPrefixSpliterator.getFirst());
+    }
+
+    //@Test
+    void should_not_match_first_half_when_split_and_second_half_used() {
+        BufferedImage twoIrons = ImageUtil.read("src/test/resources/pattern_matching/two_irons.png");
+        Icon iron = new Icon("src/test/resources/pattern_matching/iron.png");
+        PatternMatcher matcher = new PatternMatcher(twoIrons, iron);
+        Spliterator<Point> _ = matcher.trySplit();
+
+        List<Point> listFromPrefixSpliterator = StreamSupport.stream(matcher, false)
+                .toList();
+
+        assertEquals(1, listFromPrefixSpliterator.size());
+        assertEquals(new Point(201,230), listFromPrefixSpliterator.getFirst());
+    }
 }
