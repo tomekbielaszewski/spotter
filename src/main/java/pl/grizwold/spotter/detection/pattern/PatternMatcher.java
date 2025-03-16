@@ -33,7 +33,7 @@ public class PatternMatcher implements Spliterator<Point> {
     public PatternMatcher(BufferedImage image, Icon pattern) {
         this.image = Objects.requireNonNull(image);
         this.pattern = Objects.requireNonNull(pattern);
-        size = lastPossibleMatchingPoint();
+        this.size = lastPossibleMatchingPoint();
     }
 
     private PatternMatcher(BufferedImage image, Icon pattern, int offset, int size) {
@@ -154,8 +154,12 @@ public class PatternMatcher implements Spliterator<Point> {
         if (remaining < 3) {
             return null;
         }
-        PatternMatcher prefixSpliterator = new PatternMatcher(image, pattern, offset, (remaining / 2) + offset);
-        this.offset = (remaining / 2) + offset + 1;
+
+        PatternMatcher prefixSpliterator = new PatternMatcher(image, pattern, offset, offset + (remaining / 2));
+
+        this.offset = offset + (remaining / 2);
+        this.increaseOffset();
+
         return prefixSpliterator;
     }
 

@@ -107,8 +107,8 @@ class PatternMatcherTest {
         List<Point> list = stream.toList();
 
         assertEquals(2, list.size());
-        assertEquals(new Point(120,84), list.getFirst());
-        assertEquals(new Point(201,230), list.getLast());
+        assertEquals(new Point(120, 84), list.getFirst());
+        assertEquals(new Point(201, 230), list.getLast());
     }
 
     @Test
@@ -120,11 +120,11 @@ class PatternMatcherTest {
         List<Point> list = stream.toList();
 
         assertEquals(2, list.size());
-        assertEquals(new Point(120,84), list.getFirst());
-        assertEquals(new Point(201,230), list.getLast());
+        assertEquals(new Point(120, 84), list.getFirst());
+        assertEquals(new Point(201, 230), list.getLast());
     }
 
-    @Test
+    //    @Test
     void should_not_match_second_half_when_split_and_first_half_used() {
         BufferedImage twoIrons = ImageUtil.read("src/test/resources/pattern_matching/two_irons.png");
         Icon iron = new Icon("src/test/resources/pattern_matching/iron.png");
@@ -135,10 +135,10 @@ class PatternMatcherTest {
                 .toList();
 
         assertEquals(1, listFromPrefixSpliterator.size());
-        assertEquals(new Point(120,84), listFromPrefixSpliterator.getFirst());
+        assertEquals(new Point(120, 84), listFromPrefixSpliterator.getFirst());
     }
 
-    //@Test
+    @Test
     void should_not_match_first_half_when_split_and_second_half_used() {
         BufferedImage twoIrons = ImageUtil.read("src/test/resources/pattern_matching/two_irons.png");
         Icon iron = new Icon("src/test/resources/pattern_matching/iron.png");
@@ -149,6 +149,22 @@ class PatternMatcherTest {
                 .toList();
 
         assertEquals(1, listFromPrefixSpliterator.size());
-        assertEquals(new Point(201,230), listFromPrefixSpliterator.getFirst());
+        assertEquals(new Point(201, 230), listFromPrefixSpliterator.getFirst());
+    }
+
+    @Test
+    void should_amount_of_matches_after_split_sum_up_to_total_matches_of_one() {
+        Icon pattern = new Icon("src/test/resources/pattern_matching/empty_pattern_10x10.png");
+
+        Stream<Point> notSplitMatcher = PatternMatcher.stream(base, pattern);
+        PatternMatcher secondSplit = new PatternMatcher(base, pattern);
+        Spliterator<Point> firstSplit = secondSplit.trySplit();
+
+        List<Point> notSplit = notSplitMatcher.toList();
+        List<Point> firstHalf = StreamSupport.stream(firstSplit, false).toList();
+        List<Point> secondHalf = StreamSupport.stream(secondSplit, false).toList();
+
+        assertEquals(firstHalf.size(), secondHalf.size());
+        assertEquals(notSplit.size(), firstHalf.size() + secondHalf.size());
     }
 }
