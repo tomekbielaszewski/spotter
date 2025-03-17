@@ -17,7 +17,7 @@ import java.util.stream.StreamSupport;
 
 @Slf4j
 public class PatternMatcher implements Spliterator<Point> {
-    private static final org.slf4j.Logger perfLog = org.slf4j.LoggerFactory.getLogger(PatternMatcher.class.getName() + ".performance");
+    private static final org.slf4j.Logger perfLog = org.slf4j.LoggerFactory.getLogger(PatternMatcher.class.getName() + "-performance");
     // pure magenta color - RGB(255, 0, 255)
     private static final int MASK = -65281;
 
