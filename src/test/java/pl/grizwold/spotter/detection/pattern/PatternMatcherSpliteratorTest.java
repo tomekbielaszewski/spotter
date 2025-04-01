@@ -13,12 +13,12 @@ import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class PatternMatcherTest {
+class PatternMatcherSpliteratorTest {
     private final BufferedImage base = ImageUtil.read("src/test/resources/pattern_matching/base_175x31.png");
 
     @Test
     void should_match_with_self() {
-        Stream<Point> stream = PatternMatcher.stream(base, new Icon("src/test/resources/pattern_matching/base_175x31.png"));
+        Stream<Point> stream = PatternMatcherSpliterator.stream(new PatternMatcher(base, new Icon("src/test/resources/pattern_matching/base_175x31.png")));
         List<Point> list = stream.toList();
 
         assertFalse(list.isEmpty());
@@ -28,7 +28,7 @@ class PatternMatcherTest {
 
     @Test
     void should_not_find_matches_when_pattern_too_tall() {
-        Stream<Point> stream = PatternMatcher.stream(base, new Icon("src/test/resources/pattern_matching/empty_pattern_40x40.png"));
+        Stream<Point> stream = PatternMatcherSpliterator.stream(new PatternMatcher(base, new Icon("src/test/resources/pattern_matching/empty_pattern_40x40.png")));
         List<Point> list = stream.toList();
 
         assertTrue(list.isEmpty());
@@ -36,7 +36,7 @@ class PatternMatcherTest {
 
     @Test
     void should_not_find_matches_when_pattern_too_wide() {
-        Stream<Point> stream = PatternMatcher.stream(base, new Icon("src/test/resources/pattern_matching/empty_pattern_180x10.png"));
+        Stream<Point> stream = PatternMatcherSpliterator.stream(new PatternMatcher(base, new Icon("src/test/resources/pattern_matching/empty_pattern_180x10.png")));
         List<Point> list = stream.toList();
 
         assertTrue(list.isEmpty());
@@ -44,7 +44,7 @@ class PatternMatcherTest {
 
     @Test
     void should_match_everything_with_an_empty_pattern() {
-        Stream<Point> stream = PatternMatcher.stream(base, new Icon("src/test/resources/pattern_matching/empty_pattern_10x10.png"));
+        Stream<Point> stream = PatternMatcherSpliterator.stream(new PatternMatcher(base, new Icon("src/test/resources/pattern_matching/empty_pattern_10x10.png")));
         List<Point> list = stream.toList();
 
         int imageWidth = 175;
@@ -58,7 +58,7 @@ class PatternMatcherTest {
 
     @Test
     void should_match_everything_with_an_empty_pattern_when_parallel() {
-        Stream<Point> stream = PatternMatcher.stream(base, new Icon("src/test/resources/pattern_matching/empty_pattern_10x10.png")).parallel();
+        Stream<Point> stream = PatternMatcherSpliterator.stream(new PatternMatcher(base, new Icon("src/test/resources/pattern_matching/empty_pattern_10x10.png"))).parallel();
         List<Point> list = stream.toList();
 
         int imageWidth = 175;
@@ -72,7 +72,7 @@ class PatternMatcherTest {
 
     @Test
     void should_not_match_eight_in_place_of_three() {
-        Stream<Point> stream = PatternMatcher.stream(base, new Icon("src/test/resources/pattern_matching/pattern_letter_eight.png"));
+        Stream<Point> stream = PatternMatcherSpliterator.stream(new PatternMatcher(base, new Icon("src/test/resources/pattern_matching/pattern_letter_eight.png")));
         List<Point> list = stream.toList();
 
         assertTrue(list.isEmpty());
@@ -80,7 +80,7 @@ class PatternMatcherTest {
 
     @Test
     void should_match_number_three() {
-        Stream<Point> stream = PatternMatcher.stream(base, new Icon("src/test/resources/pattern_matching/pattern_letter_three.png"));
+        Stream<Point> stream = PatternMatcherSpliterator.stream(new PatternMatcher(base, new Icon("src/test/resources/pattern_matching/pattern_letter_three.png")));
         List<Point> list = stream.toList();
 
         assertFalse(list.isEmpty());
@@ -90,7 +90,7 @@ class PatternMatcherTest {
 
     @Test
     void should_match_comma_only_once() {
-        Stream<Point> stream = PatternMatcher.stream(base, new Icon("src/test/resources/pattern_matching/pattern_letter_comma.png"));
+        Stream<Point> stream = PatternMatcherSpliterator.stream(new PatternMatcher(base, new Icon("src/test/resources/pattern_matching/pattern_letter_comma.png")));
         List<Point> list = stream.toList();
 
         assertFalse(list.isEmpty());
@@ -102,7 +102,7 @@ class PatternMatcherTest {
     void should_find_two_hits() {
         BufferedImage twoIrons = ImageUtil.read("src/test/resources/pattern_matching/two_irons.png");
         Icon iron = new Icon("src/test/resources/pattern_matching/iron.png");
-        Stream<Point> stream = PatternMatcher.stream(twoIrons, iron);
+        Stream<Point> stream = PatternMatcherSpliterator.stream(new PatternMatcher(twoIrons, iron));
 
         List<Point> list = stream.toList();
 
@@ -115,7 +115,7 @@ class PatternMatcherTest {
     void should_find_two_hits_when_pattern_has_altered_hue() {
         BufferedImage twoIrons = ImageUtil.read("src/test/resources/pattern_matching/two_irons.png");
         Icon iron = new Icon("src/test/resources/pattern_matching/iron_altered_hue.png");
-        Stream<Point> stream = PatternMatcher.stream(twoIrons, iron);
+        Stream<Point> stream = PatternMatcherSpliterator.stream(new PatternMatcher(twoIrons, iron));
 
         List<Point> list = stream.toList();
 
@@ -125,24 +125,24 @@ class PatternMatcherTest {
     }
 
     //    @Test
-    void should_not_match_second_half_when_split_and_first_half_used() {
-        BufferedImage twoIrons = ImageUtil.read("src/test/resources/pattern_matching/two_irons.png");
-        Icon iron = new Icon("src/test/resources/pattern_matching/iron.png");
-        PatternMatcher matcher = new PatternMatcher(twoIrons, iron);
-        Spliterator<Point> prefixSplit = matcher.trySplit();
-
-        List<Point> listFromPrefixSpliterator = StreamSupport.stream(prefixSplit, false)
-                .toList();
-
-        assertEquals(1, listFromPrefixSpliterator.size());
-        assertEquals(new Point(120, 84), listFromPrefixSpliterator.getFirst());
-    }
+//    void should_not_match_second_half_when_split_and_first_half_used() {
+//        BufferedImage twoIrons = ImageUtil.read("src/test/resources/pattern_matching/two_irons.png");
+//        Icon iron = new Icon("src/test/resources/pattern_matching/iron.png");
+//        PatternMatcher matcher = new PatternMatcher(twoIrons, iron);
+//        Spliterator<Point> prefixSplit = matcher.trySplit();
+//
+//        List<Point> listFromPrefixSpliterator = StreamSupport.stream(prefixSplit, false)
+//                .toList();
+//
+//        assertEquals(1, listFromPrefixSpliterator.size());
+//        assertEquals(new Point(120, 84), listFromPrefixSpliterator.getFirst());
+//    }
 
     @Test
     void should_not_match_first_half_when_split_and_second_half_used() {
         BufferedImage twoIrons = ImageUtil.read("src/test/resources/pattern_matching/two_irons.png");
         Icon iron = new Icon("src/test/resources/pattern_matching/iron.png");
-        PatternMatcher matcher = new PatternMatcher(twoIrons, iron);
+        PatternMatcherSpliterator matcher = new PatternMatcherSpliterator(new PatternMatcher(twoIrons, iron));
         Spliterator<Point> _ = matcher.trySplit();
 
         List<Point> listFromPrefixSpliterator = StreamSupport.stream(matcher, false)
@@ -156,8 +156,8 @@ class PatternMatcherTest {
     void should_amount_of_matches_after_split_sum_up_to_total_matches_of_one() {
         Icon pattern = new Icon("src/test/resources/pattern_matching/empty_pattern_10x10.png");
 
-        Stream<Point> notSplitMatcher = PatternMatcher.stream(base, pattern);
-        PatternMatcher secondSplit = new PatternMatcher(base, pattern);
+        Stream<Point> notSplitMatcher = PatternMatcherSpliterator.stream(new PatternMatcher(base, pattern));
+        PatternMatcherSpliterator secondSplit = new PatternMatcherSpliterator(new PatternMatcher(base, pattern));
         Spliterator<Point> firstSplit = secondSplit.trySplit();
 
         List<Point> notSplit = notSplitMatcher.toList();
