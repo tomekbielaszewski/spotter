@@ -124,19 +124,20 @@ class PatternMatcherSpliteratorTest {
         assertEquals(new Point(201, 230), list.getLast());
     }
 
-    //    @Test
-//    void should_not_match_second_half_when_split_and_first_half_used() {
-//        BufferedImage twoIrons = ImageUtil.read("src/test/resources/pattern_matching/two_irons.png");
-//        Icon iron = new Icon("src/test/resources/pattern_matching/iron.png");
-//        PatternMatcher matcher = new PatternMatcher(twoIrons, iron);
-//        Spliterator<Point> prefixSplit = matcher.trySplit();
-//
-//        List<Point> listFromPrefixSpliterator = StreamSupport.stream(prefixSplit, false)
-//                .toList();
-//
-//        assertEquals(1, listFromPrefixSpliterator.size());
-//        assertEquals(new Point(120, 84), listFromPrefixSpliterator.getFirst());
-//    }
+    @Test
+    void should_not_match_second_half_when_split_and_first_half_used() {
+        BufferedImage twoIrons = ImageUtil.read("src/test/resources/pattern_matching/two_irons.png");
+        Icon iron = new Icon("src/test/resources/pattern_matching/iron.png");
+        PatternMatcher matcher = new PatternMatcher(twoIrons, iron);
+        PatternMatcherSpliterator spliterator = new PatternMatcherSpliterator(matcher);
+        Spliterator<Point> prefixSplit = spliterator.trySplit();
+
+        List<Point> listFromPrefixSpliterator = StreamSupport.stream(prefixSplit, false)
+                .toList();
+
+        assertEquals(1, listFromPrefixSpliterator.size());
+        assertEquals(new Point(120, 84), listFromPrefixSpliterator.getFirst());
+    }
 
     @Test
     void should_not_match_first_half_when_split_and_second_half_used() {
