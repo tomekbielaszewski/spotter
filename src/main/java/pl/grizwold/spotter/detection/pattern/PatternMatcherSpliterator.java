@@ -33,14 +33,14 @@ public class PatternMatcherSpliterator implements Spliterator<Point> {
 
     @Override
     public boolean tryAdvance(Consumer<? super Point> action) {
-        long start = System.currentTimeMillis();
+        var start = System.currentTimeMillis();
         while (patternFitsInImage()) {
             var thisOffset = offset;
-            boolean found = testPattern();
+            var found = this.matcher.testPattern(x(), y());
             increaseOffset();
 
             if (found) {
-                action.accept(toPoint(thisOffset));
+                action.accept(new Point(x(thisOffset), y(thisOffset)));
                 perfLog.debug("Pattern {} found in {}ms", matcher.pattern, System.currentTimeMillis() - start);
                 return true;
             }
@@ -49,14 +49,10 @@ public class PatternMatcherSpliterator implements Spliterator<Point> {
         return false;
     }
 
-    private boolean testPattern() {
-        return this.matcher.testPattern(x(), y());
-    }
-
     private boolean patternFitsInImage() {
-        boolean patternFitsTheImage = matcher.image.getWidth() >= matcher.pattern.getImage().getWidth() &&
+        var patternFitsTheImage = matcher.image.getWidth() >= matcher.pattern.getImage().getWidth() &&
                 matcher.image.getHeight() >= matcher.pattern.getImage().getHeight();
-        boolean thereAreStillChecksToBeDone = offset <= size;
+        var thereAreStillChecksToBeDone = offset <= size;
         return patternFitsTheImage && thereAreStillChecksToBeDone;
     }
 
@@ -75,10 +71,6 @@ public class PatternMatcherSpliterator implements Spliterator<Point> {
         return (matcher.image.getHeight() * matcher.image.getWidth())
                 - (matcher.pattern.getImage().getHeight() * matcher.image.getWidth())
                 + (matcher.image.getWidth() - matcher.pattern.getImage().getWidth());
-    }
-
-    private Point toPoint(int offset) {
-        return new Point(x(offset), y(offset));
     }
 
     private int y(int offset) {
